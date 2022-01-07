@@ -1,7 +1,8 @@
 ---
 layout: post
-date: 2015-10-22 15:59:00-0400
+date: 2022-01-08 00:00:00-0000
 inline: true
 ---
 
-A simple inline announcement.
+I create this personal website using [al-folio](https://github.com/alshedivat/al-folio), a simple, clean, and responsive [Jekyll](https://jekyllrb.com/) theme for academics.
+
