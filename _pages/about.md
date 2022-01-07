@@ -13,5 +13,9 @@ selected_papers: false # includes a list of papers marked as "selected={true}"
 social: true  # includes social icons at the bottom of the page
 ---
 
-Welcome to my personal website. I am currently a PhD candidate of Department of Finance at Tilburg University. I will join Nankai University School of Finance in 2022. My research interests include empirical corporate finance and behavioral financ
+Welcome to my personal website.
+
+I am currently a PhD candidate of [Department of Finance at Tilburg University](https://www.tilburguniversity.edu/about/schools/economics-and-management/organization/departments/finance). I will join [Nankai University School of Finance](https://finance.nankai.edu.cn/) in 2022.
+
+My research interests include empirical corporate finance and behavioral finance.
 
