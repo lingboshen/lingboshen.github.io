@@ -24,5 +24,7 @@ Please find my CV <a class="ml-auto mr-2" href="/assets/pdf/example_pdf.pdf" tar
 here.
 </a>
 
+Please find my CV [here](https://lingboshen.github.io/assets/pdf/example_pdf.pdf).
+
 Email: [l.shen_2@tilburguniversity.edu](mailto:l.shen_2@tilburguniversity.edu)
 
