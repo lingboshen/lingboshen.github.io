@@ -1,16 +1,11 @@
 ---
 layout: page
 permalink: /cv/
-title: CV
+title: cv
 nav: cv
 ---
 
-<!-- Place PDF download link at the top right. -->
-<div class="row" style="margin-top: -3.0em;">
-	<a class="ml-auto mr-2" href="/assets/pdf/CV_Asjad_2021.pdf" target="_blank">
-	  <img height="50px" src="/assets/img/pdf_icon.svg">
-	</a>
-</div>
+Please find my CV [here](https://lingboshen.github.io/assets/pdf/CV_LingboShen.pdf).
 
 <div class="cv">
 	{% for entry in site.data.cv %}

@@ -2,175 +2,55 @@
   type: map
   contents:
   - name: Name
-    value: Asjad Naqvi
+    value: Lingbo Shen
   - name: Contact
-    value: asjadnaqvi@gmail.com
+    value: l.shen_2@tilburguniversity.edu
   - name: Languages
-    value: English (fluent), German (ÖSD/ÖIF B1, B2 courses), Urdu (native)
+    value: English (fluent), Dutch (A2), Chinese (native)
 
 - title: Research interests
   type: map
   contents:
   - name: Topics
-    value: climate change, economic impacts, complex networks, North-South interactions, green investment, behavioral response to shocks, disaster risk reduction (DRR), disaster recovery financing
-  - name: Methods
-    value: Stock-flow consistent (SFC) macro models, agent-based models (ABMs), causal inference designs (DiD, RDDs, RCTs)
+    value: empirical corporate finance, behavioral finance
 
 - title: Education
   type: table
-  contents: 
-  - title: 'Habilitation in Economics - <a href="https://www.wu.ac.at/">Vienna University of Economics and Business (WU Wien)</a> '
-    year: Oct 2020
-    location: Vienna, Austria
-  
-  - title: 'Ph.D. in Economics - <a href="https://www.newschool.edu/nssr/">New School for Social Research (NSSR)</a>'
-    year: 2007 - 2012
-    location: New York, USA
+  contents:   
+  - title: 'Ph.D. in Finance - <a href="https://www.tilburguniversity.edu/research/economics-and-management/graduate-school">CentER, Tilburg University</a>'
+    year: 2016 - 2022 (expected)
+    location: Tilburg, the Netherlands
     description:
-    - 'Supervisor: Prof. Duncan Foley'
-    - 'Thesis: Simulating Shocks in Regional Economies: Application of Agent-Based Models in Understanding Natural Disasters.'
-    - 'Thesis committee: Duncan Foley, Robert Axtell (George Mason U.), Sanjay Reddy, Lopa Banerjee'
+    - 'Supervisor: Prof. Fabio Braggion'
+    - 'Thesis: '
+    - 'Thesis committee: '
 
-  - title: 'M.Sc. in Economics - <a href="https://lums.edu.pk/">Lahore University of Management Sciences (LUMS)</a>'
-    year: 2003 - 2004
-    location: Lahore, Pakistan
+  - title: 'M.Phil. in Finance - <a href="https://www.tilburguniversity.edu/research/economics-and-management/graduate-school">CentER, Tilburg University</a>'
+    year: 2014 - 2016
+    location: Tilburg, the Netherlands
 
-  - title: 'B.Sc. (Hons.) Economics and Management - <a href="https://london.ac.uk/">University of London External Programme</a>'
-    year: 1998 - 2001
-    location: Lahore, Pakistan
-  
+  - title: 'M.Sc. in Finance (cum laude) - <a href="https://www.tilburguniversity.edu/about/schools/economics-and-management">TiSEM, Tilburg University</a>'
+    year: 2013 - 2014
+    location: Tilburg, the Netherlands
 
-- title: Work experience
-  type: table
-  contents:
-  - title: 'Assistant Professor, <a href="https://www.wu.ac.at/en/ecolecon/institute">Institute for Ecological Eonomics</a>, <a href="https://www.wu.ac.at/">Vienna University of Economics and Business (WU Wien)</a>'
-    year: 2020 - 
-    location: Vienna, Austria
-    
-  - title: 'Research Scholar, <a href="https://iiasa.ac.at/web/asa.html">Advancing Systems Analysis (ASA)</a>, <a href="https://iiasa.ac.at">International Institute for Applied Systems Analysis (IIASA)</a>'
-    year: '2017 - '
-    location: USA
-
-  - title: 'Assistant Professor, <a href="https://www.wu.ac.at/en/ecolecon/institute">Institute for Ecological Eonomics</a>, <a href="https://www.wu.ac.at/">Vienna University of Economics and Business (WU Wien)</a>'
-    year: 2013 - 2019
-    location: Vienna, Austria
-
-  - title: 'Research Director, <a href="https://cerp.org.pk/">Center for Economic Research Pakistan (CERP)</a>'
-    year: 2011 - 2013
-    location: Lahore, Pakistan
-
-  - title: 'Research Associate, <a href="https://lums.edu.pk/">Lahore University of Management Sciences (LUMS)</a>'
-    year: 2004 - 2007
-    location: Lahore, Pakistan
-    
-  - title: 'Lecturer, <a href="https://www.ucl.edu.pk/">University College Lahore</a>'
-    year: 2001 - 2003
-    location: Lahore, Pakistan  
-
-- title: Peer-reviewing activities
-  type: table
-  contents:
-  - year: Journals
-    items:
-    - 'Nature Climate Change, Nature Human Behavior, Climate Policy, Climatic Change, Journal of Financial Stability, Journal of Cleaner Production, Ecological Economics, International Journal of Disaster Risk Reduction, Regional Environmental Change, Journal of Evolutionary Economics, Environmental Economics and Policy Studies, European Sociological Review'
-  - year: Donors
-    items:
-    - 'Österreichische Nationalbanks Jubiläumsfonds (ÖNB, Austria), Bundesministerium für Bildung und Forschung (BMBF, Germany)'
-
-
-- title: Selected presentations
-  type: table
-  contents:
-  - year: 2021
-    items:
-    - Advanced data visualizations with Stata, Keynote, Stata UK 2021 conference (online)
-    - Modeling disasters impacts, cascading losses and economic complexity, UN OCHA(Geneva, Switzerland) (online)
-  - year: 2020
-    items: 
-    - Environmental Inequality in Austria - Implications for COVID-19, COVID-19 Future Operations Platform (Vienna, Austria)
-  - year: 2019
-    items: 
-    - Coupled climate-ecology-economy modeling and model hierarchies, Institut Henri Poincare (Paris, France)
-    - Annual conference of the Gesellschaft für Regional Forschung (GfR), European Regional Science Association (ERSA) (Matrei in Osttirol, Austria)
-    - 20th Annual Austrian Climate Center meeting (Klimatag), Climate Change Center Austria (CCCA) (Vienna, Austria)
-  - year: 2018
-    items: 
-    - Annual conference of the European Association Evolutionary Political Economy (EAEPE) (Nice, France)
-    - Knowledge Systems for Sustainability Collaborative (KSS), Climate KIC (European Comission) (Trento, Italy)
-    - Annual conference of the Gesellschaft für Regional Forschung (GfR), European Regional Science Association (ERSA) (Innsbruck, Austria)
-    - Uncovering the hidden cost of internal displacement, Internal Displacement Monitoring Cell (IDMC) (Geneva, Switzerland)
-  - year: 2017
-    items:
-    - Annual conference of the European Association Evolutionary Political Economy (EAEPE) (Budapest, Hungary)
-    - Instructor for the FMM Summer School (Berlin, Germany)
-    - Annual conference of the European Society for Ecological Economics (ESEE) (Budapest, Hungary)
-    - Annual conference of the Gesellschaft für Regional Forschung (GfR), European Regional Science Association (ERSA) (Spital am Phyrrn, Austria)
-  
-  
-- title: Teaching experience
-  type: table
-  contents:
-  - title: 'SEEP Masters Program, WU Vienna'
-    year: 2014 - 
-    location: Vienna, Austria
+  - title: 'B.Sc. in Mathematics - <a href="https://www.math.pku.edu.cn/">School of Mathematical Sciences, Peking University</a>'
+    year: 2010 - 2013
+    location: Beijing, China
     description:
-    - Zukunftsfähiges Wirtschaften II (ZuWi II) (Summer 2022)
-    - Environment and Economy II: Causal inference methods (Summer 2022)
-    - Environmental Change and Policy II (3 semesters)
-    - Growth, Well-being, and Development (2 semesters)
-    - Bridging course in Economics (2 semesters)
-  - title: 'Computer Language Workshop, New School for Social Research'
-    year: 2007 - 2010
-    location: New York, USA
+    - 'Dual degree, majoring in Statistics'
+ 
+  - title: 'B.Sc. in Economics - <a href="https://www.gsm.pku.edu.cn/index/xyxw.htm">Guanghua School of Management, Peking University</a>'
+    year: 2009 - 2013
+    location: Beijing, China
     description:
-    - Computer labs for PhD courses in Stata, Mathematica, NetLogo
-  - title: 'Economic Masters program, Lahore University of Management Sciences (LUMS)'
-    year: 2005 - 2006
-    location: Lahore, Pakistan
-    description:
-    - Development Economics
-    - Econometrics I
-  - title: 'University of London External Programme, University College Lahore'
-    year: 2001 - 2003
-    location: Lahore, Pakistan
-    description:
-    - Mathematics for Economists
-    - Advanced Mathematics for Economists
-    - Quantitative Methods
-    - Statistics I and II
-    
+    - 'Majoring in Finance'
+    - 'Exchange student in - <a href="https://www.tilburguniversity.edu/about/schools/economics-and-management">TiSEM Tilburg University</a> (2011)'
 
-
-- title: Honors and Awards
-  type: list
+- title: Skills
+  type: map
   contents:
-    - 'Fulbright Scholarship (2007-2011)'
-    - 'Best poster award at the European Society for Ecological Economics (ESEE), Budapest, Hungary (2017)'
-    - 'Eduard-März-Prize for the best paper at the AK Young Economists Conference, Vienna, Austria (2014)'
-    - 'IIASA Young Scientists Scholarshop Program (YSSP) (2012)'
-    - 'Winner of the Stockholm Challenge for RISEPAK website (2006)'
-  
-
-- title: Data, code, and blogs
-  type: list
-  contents:
-  - '<a href="https://github.com/asjadnaqvi">See various repositories on GitHub</a>'
-  - '<a href="https://asjadnaqvi.github.io/DiD/">Notes on recent developments in the Diff-in-diff literature</a>'
-  - '<a href="https://medium.com/the-stata-guide">The Stata Guide on Medium</a>' 
-  - '<a href="https://github.com/asjadnaqvi/COVID19-European-Regional-Tracker">COVID-19 European Regional Tracker</a>' 
-  - '<a href="https://github.com/asjadnaqvi/Austria-COVID-19-Tracker">COVID-19 Austrian Tracker</a>' 
-  - Co-authored Stata package drdid (ssc install drdid, replace) with '<a href="https://www.levyinstitute.org/scholars/fernando-rios-avila">Fernando Rios-Avila</a>' and '<a href="https://pedrohcgs.github.io/">Pedro Sant'Anna</a>' based on '<a href="https://www.sciencedirect.com/science/article/pii/S0304407620301901">Sant'Anna and Zhao (2020)</a>'. 
-  
-
-- title: Computer skills
-  type: list
-  contents:
-  - 'Programming languages: Stata, Mathematica, NetLogo, R, MATLAB, Gephi, LaTeX, Markdown'
-  - 'Basic knowledge of: Ruby, Python, JavaScript, C++, Rust, HTML, CSS'
-
-
-
-- title: Miscellaneous
-  type: list
-  contents:
-  - 'Hobbies: photography, movies, sci-fi, music'
+  - name: Software skills
+    value: Lingbo Shen
+  - name: Stata, Python, LaTeX
+  - name: Languages
+    value: English (fluent), Dutch (A2), Chinese (native)
