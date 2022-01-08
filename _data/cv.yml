@@ -3,10 +3,8 @@
   contents:
   - name: Name
     value: Lingbo Shen
-  - name: Contact
+  - name: Email
     value: l.shen_2@tilburguniversity.edu
-  - name: Languages
-    value: English (fluent), Dutch (A2), Chinese (native)
 
 - title: Research interests
   type: map
