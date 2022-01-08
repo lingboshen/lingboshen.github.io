@@ -19,3 +19,7 @@ I am currently a PhD candidate of [Department of Finance at Tilburg University](
 
 My research interests include empirical corporate finance and behavioral finance.
 
+Please find my CV here.
+
+Email: [l.shen_2@tilburguniversity.edu](mailto:l.shen_2@tilburguniversity.edu)
+
