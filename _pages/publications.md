@@ -1,12 +1,14 @@
 ---
 layout: page
 permalink: /publications/
-#title: research
+title: research
 #description: Please find my research here.
-years: [1956, 1950, 1935, 1905]
+years: [2022, 2022, 2022]
 nav: true
 ---
 <!-- _pages/publications.md -->
+Please find my research here.
+
 ## Working papers
 <div class="publications">
 
