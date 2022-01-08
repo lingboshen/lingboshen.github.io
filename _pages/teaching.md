@@ -2,10 +2,14 @@
 layout: page
 permalink: /teaching/
 title: teaching
-description: Materials for courses you taught. Replace this text with your description.
+description: 
 nav: true
 ---
 
-For now, this page is assumed to be a static description of your courses. You can convert it to a collection similar to `_projects/` so that you can have a dedicated page for each course.
-
-Organize your courses by years, topics, or universities, however you like!
+**Tilburg University**
+* Supervision B.Sc. Thesis in Finance, 2017 
+* Teaching assistant: 
+ - Financial History and Intermediation (undergraduate), 2016, 2017, 2018 
+ - Finance I for IBA (undergraduate), 2017, 2018, 2019
+ - International Finance (graduate), 2017, 2018, 2019, 2020
+ - Academic Competences Finance (pre-master), 2019
