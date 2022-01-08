@@ -7,9 +7,7 @@ years: [2022] #include unique years with papers
 nav: true
 ---
 <!-- _pages/publications.md -->
-Please find my research here.
-
-### Working papers
+#### Working papers
 <div class="publications">
 
 {%- for y in page.years %}
