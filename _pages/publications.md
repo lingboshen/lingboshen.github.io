@@ -12,7 +12,6 @@ nav: true
 
 {%- for y in page.years %}
   {% bibliography -f wp_papers -q @*[year={{y}}]* %}
-  {% include figure.html path="assets/img/7.jpg" class="img-fluid rounded z-depth-1" %}
 {% endfor %}
 
 </div>
