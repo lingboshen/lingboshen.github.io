@@ -1,7 +1,7 @@
 ---
 layout: page
 permalink: /publications/
-title: research
+title: Research
 #description: Please find my research here.
 years: [2022] #include unique years with papers
 nav: true

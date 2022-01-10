@@ -1,6 +1,6 @@
 ---
 layout: about
-title: about
+title: About
 permalink: /
 subtitle: <a href='https://www.tilburguniversity.edu/about/schools/economics-and-management/organization/departments/finance'>Department of Finance Tilburg University</a>
 
