@@ -73,6 +73,9 @@
               <!-- Chinese -->
               <li class="nav-item {% if page.lang == 'cn' %}active{% endif %}">
                 <a class="nav-link" href="{{ '/chinese/' | relative_url }}">Chinese/中文
+                  {%- if page.title == "Chinese" -%}
+                  <span class="sr-only">(current)</span>
+                  {%- endif -%}
                 </a>
               </li>
 
