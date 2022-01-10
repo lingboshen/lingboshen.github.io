@@ -4,6 +4,7 @@ permalink: /teaching/
 title: teaching
 description: 
 nav: true
+lang: en
 ---
 
 **Tilburg University**

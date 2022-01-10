@@ -3,6 +3,7 @@ layout: page
 permalink: /cv/
 title: CV
 nav: cv
+lang: en
 ---
 
 Please find my CV [here](https://lingboshen.github.io/assets/pdf/CV_LingboShen.pdf).
