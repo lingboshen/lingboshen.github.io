@@ -4,7 +4,13 @@
   - name: Name
     value: Lingbo Shen
   - name: Email
-    value: l.shen_2@tilburguniversity.edu
+    value: l.shen-1@utwente.nl
+  - name: Phone
+    value: + 31 534 892 073
+  - name: Address
+    value: Faculty of Behavioural, Management and Social Sciences Ravelijn 2333, P.O. Box 217, 7500 AE Enschede, the Netherlands
+  - name: Research interests
+    value: empirical corporate finance, behavioral finance
 
 - title: Employment
   type: table
@@ -13,13 +19,7 @@
     year: 2022 - Present
     location: Enschede, the Netherlands
     description:
-    - ' Faculty of Behavioural, Management and Social Sciences, University of Twente'
-
-- title: Research interests
-  type: map
-  contents:
-  - name: Topics
-    value: empirical corporate finance, behavioral finance
+    - ' <a href="https://people.utwente.nl/l.shen-1">Faculty of Behavioural, Management and Social Sciences, University of Twente</a>'
 
 - title: Education
   type: table
