@@ -2,7 +2,6 @@
 layout: about
 title: About
 permalink: /
-subtitle: <a href="https://people.utwente.nl/l.shen-1">Faculty of Behavioural, Management and Social Sciences, University of Twente</a>
 
 profile:
   align: right
