@@ -2,7 +2,7 @@
 layout: about
 title: About
 permalink: /
-subtitle: <a href='https://www.tilburguniversity.edu/about/schools/economics-and-management/organization/departments/finance'>Department of Finance Tilburg University</a>
+subtitle: <a href="https://people.utwente.nl/l.shen-1">Faculty of Behavioural, Management and Social Sciences, University of Twente</a>
 
 profile:
   align: right
@@ -16,11 +16,11 @@ lang: en
 
 Welcome to my personal website.
 
-I am currently a PhD candidate of [Department of Finance at Tilburg University](https://www.tilburguniversity.edu/about/schools/economics-and-management/organization/departments/finance). 
+I am currently an Assistant Professor of Finance and Accounting of [Faculty of Behavioural, Management and Social Sciences at University of Twente](https://people.utwente.nl/l.shen-1). 
 
 My research interests include empirical corporate finance and behavioral finance.
 
 Please find my CV [here](https://lingboshen.github.io/assets/pdf/CV_LingboShen.pdf).
 
-Email: [l.shen_2@tilburguniversity.edu](mailto:l.shen_2@tilburguniversity.edu)
+Email: [l.shen-1@utwente.nl](mailto:l.shen-1@utwente.nl)
 
