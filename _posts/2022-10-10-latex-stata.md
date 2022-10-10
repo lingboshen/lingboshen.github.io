@@ -1,0 +1,9 @@
+---
+layout: post
+title: Stata LaTeX 
+date: 2022-10-10 11:12:00-0400
+description: Stata and LaTeX integration
+tags: tutorial software stata latex
+categories: sample-posts
+---
+The post describes the integration of Stata and $$\LaTeX$$.
