@@ -1,7 +1,7 @@
 ---
 layout: page
 permalink: /chinese/
-title:
+title: Chinese
 description:
 nav: true
 lang: cn
