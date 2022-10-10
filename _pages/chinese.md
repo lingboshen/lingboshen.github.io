@@ -12,7 +12,7 @@ lang: cn
 &nbsp;
 
  
-我现为[屯特大学Faculty of Behavioural, Management and Social Sciences助理教授](https://people.utwente.nl/l.shen-1).
+我现为[屯特大学Faculty of Behavioural, Management and Social Sciences](https://people.utwente.nl/l.shen-1)助理教授
 
 我的研究方向是实证公司金融和行为金融
 
