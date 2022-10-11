@@ -7,6 +7,9 @@ nav: true
 lang: en
 ---
 
+**University of Twente**
+- Business Valueation and Corporate Governance
+
 **Tilburg University**
 * Supervision B.Sc. Thesis in Finance, 2017 
 * Teaching assistant: 
@@ -16,5 +19,3 @@ lang: en
     - Academic Competences Finance (pre-master), 2019
 
 
-**University of Twente**
-    - Business Valueation and Corporate Governance
