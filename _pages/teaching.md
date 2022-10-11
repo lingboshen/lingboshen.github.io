@@ -14,3 +14,7 @@ lang: en
     - Finance I for IBA (undergraduate), 2017, 2018, 2019
     - International Finance (graduate), 2017, 2018, 2019, 2020
     - Academic Competences Finance (pre-master), 2019
+
+
+**University of Twente**
+    - Business Valueation and Corporate Governance
