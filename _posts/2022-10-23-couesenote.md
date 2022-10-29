@@ -19,6 +19,7 @@ When I did my Finance Ph.D. program at CentER, Tilburg University, I took a seri
     - [D&M Chapter 4: Hypothesis Testing in Linear Regression Model](https://lingboshen.github.io/blog/2022/DMCh4/)
     - [D&M Chapter 6: Confidence Intervals](https://lingboshen.github.io/blog/2022/DMCh6/)
     - [D&M Chapter 7: Generalized Least Squares and Related Topics](https://lingboshen.github.io/blog/2022/DMCh7/)
+    - [D&M Chapter 8: Instrumental Variables Estimation](https://lingboshen.github.io/blog/2022/DMCh8/)
 
 
 ### Econometrics 3
