@@ -32,4 +32,4 @@ When I did my Finance Ph.D. program at CentER, Tilburg University, I took a seri
     - [Asymptotics for Dynamic Models](https://lingboshen.github.io/blog/2022/TS4/)
     - [Trends and Unit Roots](https://lingboshen.github.io/blog/2022/TS5/)
     - [Multivarite Model](https://lingboshen.github.io/blog/2022/TS6/)
- 
+    - [Panel Data](https://lingboshen.github.io/blog/2022/PD/)
