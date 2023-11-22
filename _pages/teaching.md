@@ -8,7 +8,10 @@ lang: en
 ---
 
 **University of Twente**
-- Business Valueation and Corporate Governance
+- Corporate Governance (undergraduate), 2023 
+- Business Valuation and Corporate Governance (graduate), 2022, 2023 
+- Supervision B.Sc. Thesis in Finance, 2023    
+- Supervision M.Sc. Thesis in Finance, 2023  
 
 **Tilburg University**
 * Supervision B.Sc. Thesis in Finance, 2017 
