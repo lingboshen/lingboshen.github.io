@@ -5,4 +5,3 @@ inline: true
 ---
 
 I officially join the University of Twente as an Assistant Professor of Finance and Accounnting.
-
