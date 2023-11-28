@@ -2,7 +2,7 @@
 <html lang="en">
 
   <!-- Head -->
-  <head><meta http-equiv="refresh" content="3; url=https://lingboshen.github.io/" />        
+  <head>        
     <!-- Metadata, OpenGraph and Schema.org -->
     
 
@@ -10,9 +10,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Lingbo  Shen | Page not found</title>
+    <title>Lingbo  Shen | Time Series 4&mdash;Asymptotics for Dynamic Models</title>
     <meta name="author" content="Lingbo  Shen" />
-    <meta name="description" content="Looks like there has been a mistake. Nothing exists here." />
+    <meta name="description" content="A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design.
+" />
     <meta name="keywords" content="jekyll, jekyll-theme, academic-website, portfolio-website" />
 
     <meta name="google-site-verification" content="45VVBTzbWI9CPrT2UtIdTtL6imAnvMgtV1VttR2zNGI" />
@@ -32,7 +33,7 @@
     <!-- Styles -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22></text></svg>">
     <link rel="stylesheet" href="/assets/css/main.css">
-    <link rel="canonical" href="https://lingboshen.github.io/404.html">
+    <link rel="canonical" href="https://lingboshen.github.io/blog/2022/TS4/">
 
     <!-- Dark Mode -->
     <script src="/assets/js/theme.js"></script>
@@ -82,7 +83,7 @@
               </li>
 
               <!-- Blog -->
-              <li class="nav-item ">
+              <li class="nav-item active">
                 <a class="nav-link" href="/blog/">Blog</a>
               </li>
 
@@ -101,20 +102,140 @@
 
     <!-- Content -->
     <div class="container mt-5">
-      <!-- page.html -->
-        <div class="post">
+      <!-- _layouts/post.html -->
 
-          <header class="post-header">
-            <h1 class="post-title">Page not found</h1>
-            <p class="post-description">Looks like there has been a mistake. Nothing exists here.</p>
-          </header>
+<div class="post">
 
-          <article>
-            <p>You will be redirected to the main page within 3 seconds. If not redirected, please click <a href="https://lingboshen.github.io/">here</a>.</p>
+  <header class="post-header">
+    <h1 class="post-title">Time Series 4—Asymptotics for Dynamic Models</h1>
+    <p class="post-meta">October 23, 2022</p>
+    <p class="post-tags">
+      <a href="/blog/2022"> <i class="fas fa-calendar fa-sm"></i> 2022 </a>
+        ·  
+        <a href="/blog/tag/note">
+          <i class="fas fa-hashtag fa-sm"></i> note</a>  
+          <a href="/blog/tag/time-series">
+          <i class="fas fa-hashtag fa-sm"></i> time-series</a>  
+          <a href="/blog/tag/econometics">
+          <i class="fas fa-hashtag fa-sm"></i> econometics</a>  
+          
 
-          </article>
+    </p>
+  </header>
 
-        </div>
+  <article class="post-content">
+    <h1 id="the-simple-autoregressive-model">The Simple Autoregressive Model</h1>
+<h1 id="martingale-difference-processes">Martingale Difference Processes</h1>
+<p>The adapted sequence \(\{s_{t},\mathcal{F}_{t}\}\) is called a martingale if for every \(t\) the following conditions hold:</p>
+<ul>
+  <li>
+\[E|s_{t}|&lt;\infty\]
+  </li>
+  <li>\(E(s_{t}\mid\mathcal{F}_{t-1})=s_{t-1}\) a.s.</li>
+</ul>
+
+<p>The adapted sequence \(\{x_{t},\mathcal{F}_{t}\}\) is called a martingale difference (m.d.) if for every \(t\) the following conditions hold:</p>
+<ul>
+  <li>
+\[E|x_{t}|&lt;\infty\]
+  </li>
+  <li>\(E(s_{t}\mid\mathcal{F}_{t-1})=0\) a.s.
+Here is a fundamental property of m.d. processes.</li>
+</ul>
+
+<p><strong>theorem</strong>
+Let \(\{x_{t}\}\) be an m.d. sequence and let \(g_{t-1}=g(x_{t-1},x_{t-2},\cdots,)\) be any measurable, integrable function of the lagged values of the sequence. Then \(x_{t}g_{t-1}\) is also an m.d., and \(x_{t}\) and \(g_{t-1}\) are uncorrelated.</p>
+
+<p><em>proof</em>
+By law of iterated expectations, we have</p>
+
+\[\begin{eqnarray*}
+E(x_{t}g_{t-1})&amp;=&amp;E(E(x_{t}g_{t-1}\mid\mathcal{F}_{t-1}))\\
+			&amp;=&amp;E(g_{t-1}E(x_{t}\mid\mathcal{F}_{t-1}))\\
+			&amp;=&amp;E(g_{t-1}\cdot 0)\\
+			&amp;=&amp;0
+\end{eqnarray*}\]
+
+<p>It means that \(x_{t}g_{t-1}\) is also an m.d. For uncorrelation, we show that</p>
+
+\[\begin{eqnarray*}
+Cov(x_{t},g_{t-1})&amp;=&amp;E(x_{t}g_{t-1})-E(x_{t})E(g_{t-1})\\
+			   &amp;=&amp;E(x_{t}g_{t-1})-E(E(x_{t}\mid\mathcal{F}_{t-1})E(g_{t-1})\\
+			  &amp;=&amp;0-0\\
+			&amp;=&amp;0
+\end{eqnarray*}\]
+
+<p>In particular, putting \(g_{t-1}=x_{t-j}\) for any \(j&gt;0\), the theorem implies</p>
+
+\[\begin{eqnarray*}
+Cov(x_{t},x_{t-j})&amp;=&amp;0
+\end{eqnarray*}\]
+
+<p><strong>The m.d. property implies uncorrelatedness of the sequence, although it is a weaker property than independence.</strong></p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Given an arbitrary sequence \(\{y_{t}\}\) satisfying $$E</td>
+      <td>y_{t}</td>
+      <td>&lt;\infty\(and\)\sigma\left(y_{t},y_{t-1},\cdots\right)\subset \mathcal{F}<em>{t}\(, an m.d. sequence can always be generated as the centred sequence\){x</em>{t}}$$ where</td>
+    </tr>
+  </tbody>
+</table>
+
+\[\begin{eqnarray*}
+x_{t}&amp;=&amp;y_{t}-E(y_{t}\mid\mathcal{F}_{t-1})
+\end{eqnarray*}\]
+
+<p>We consider the law of large number and central limit theorem for m.d. processes.
+<strong>theorem</strong></p>
+
+<p>Let \(\{x_{t}\}\) be an m.d. sequence. Then \(\mathop{plim} \bar{x}_{n}=0\) if either of the following condition hold.</p>
+<ul>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>The sequence is strictly stationary and $$E</td>
+          <td>x_{t}</td>
+          <td>&lt;\infty$$</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>$$E</td>
+          <td>x_{t}</td>
+          <td>^{1+\delta}&lt;\infty\(,\)\forall t$$</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ul>
+
+<p>The following is central limit theorem for m.d.</p>
+
+<p><strong>theorem</strong>
+Let \(\{x_{t},\mathcal{F}_{t}\}\) be a m.d. sequence with \(E(x_{t}^{2})=\sigma_{t}^{2}\) and let \(\bar{\sigma}_{n}^{2}=n^{-1}\sum_{t=1}^{n}\sigma_{t}^{2}\). If</p>
+
+<ul>
+  <li>
+\[\mathop{plim} n^{-1}\sum_{t=1}^{n}\left(x_{t}^{2}-\sigma_{t}^{2}\right)=0\]
+  </li>
+  <li>either
+    <ul>
+      <li>the sequence is strictly stationary</li>
+    </ul>
+  </li>
+</ul>
+
+
+  </article>
+
+</div>
 
     </div>
 

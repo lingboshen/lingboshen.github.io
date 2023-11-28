@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <!-- Head -->
+  <head>        
+    <!-- Metadata, OpenGraph and Schema.org -->
+    
+
+    <!-- Standard metadata -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Lingbo  Shen | Davidson and MacKinnon Chapter 2&mdash;The Geometry of Linear Regression</title>
+    <meta name="author" content="Lingbo  Shen" />
+    <meta name="description" content="The second chapter of Econometric Theory and Methods" />
+    <meta name="keywords" content="jekyll, jekyll-theme, academic-website, portfolio-website" />
+
+    <meta name="google-site-verification" content="45VVBTzbWI9CPrT2UtIdTtL6imAnvMgtV1VttR2zNGI" />
+    
+    <!-- Bootstrap & MDB -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" integrity="sha512-MoRNloxbStBcD8z3M/2BmnT+rg4IsMxPkXaGh2zD6LGNNFE80W3onsAhRcMAMrSoyWL9xD7Ert0men7vR8LUZg==" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css" integrity="sha512-RO38pBRxYH3SoOprtPTD86JFOclM51/XTIdEPh5j8sj4tp8jmQIx26twG52UaLi//hQldfrh7e51WzP9wuP32Q==" crossorigin="anonymous" />
+
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"  integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.0/css/academicons.min.css" integrity="sha512-W4yqoT1+8NLkinBLBZko+dFB2ZbHsYLDdr50VElllRcNt2Q4/GSs6u71UHKxB7S6JEMCp5Ve4xjh3eGQl/HRvg==" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Material+Icons">
+
+    <!-- Code Syntax Highlighting -->
+    <link rel="stylesheet" href="https://gitcdn.link/repo/jwarby/jekyll-pygments-themes/master/github.css" />
+
+    <!-- Styles -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22></text></svg>">
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="canonical" href="https://lingboshen.github.io/blog/2022/DMCh2/">
+
+    <!-- Dark Mode -->
+    <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/dark_mode.js"></script>
+  </head>
+
+  <!-- Body -->
+  <body class="fixed-top-nav">
+
+    <!-- Header -->
+    <header>
+
+      <!-- Nav Bar -->
+      <nav id="navbar" class="navbar navbar-light navbar-expand-sm fixed-top">
+        <div class="container">
+          <a class="navbar-brand title font-weight-lighter" href="https://lingboshen.github.io/"><span class="font-weight-bold">Lingbo</span>   Shen</a>
+          <!-- Navbar Toggle -->
+          <button class="navbar-toggler collapsed ml-auto" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar top-bar"></span>
+            <span class="icon-bar middle-bar"></span>
+            <span class="icon-bar bottom-bar"></span>
+          </button>
+
+          <div class="collapse navbar-collapse text-right" id="navbarNav">
+            <ul class="navbar-nav ml-auto flex-nowrap">
+
+              <!-- About -->
+              <li class="nav-item ">
+                <a class="nav-link" href="/">Home</a>
+              </li>
+              
+
+              <!-- Other pages -->
+              <li class="nav-item ">
+                <a class="nav-link" href="/cv/">CV</a>
+              </li>
+              <li class="nav-item ">
+                <a class="nav-link" href="/publications/">Research</a>
+              </li>
+              <li class="nav-item ">
+                <a class="nav-link" href="/teaching/">Teaching</a>
+              </li>
+<!-- Chinese -->
+              <li class="nav-item ">
+                <a class="nav-link" href="/chinese/">Chinese/中文</a>
+              </li>
+
+              <!-- Blog -->
+              <li class="nav-item active">
+                <a class="nav-link" href="/blog/">Blog</a>
+              </li>
+
+              <!-- Toogle theme mode -->
+              <div class="toggle-container">
+                <a id="light-toggle">
+                  <i class="fas fa-moon"></i>
+                  <i class="fas fa-sun"></i>
+                </a>
+              </div>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Content -->
+    <div class="container mt-5">
+      <!-- _layouts/post.html -->
+
+<div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Davidson and MacKinnon Chapter 2—The Geometry of Linear Regression</h1>
+    <p class="post-meta">October 23, 2022</p>
+    <p class="post-tags">
+      <a href="/blog/2022"> <i class="fas fa-calendar fa-sm"></i> 2022 </a>
+        ·  
+        <a href="/blog/tag/note">
+          <i class="fas fa-hashtag fa-sm"></i> note</a>  
+          <a href="/blog/tag/econometics">
+          <i class="fas fa-hashtag fa-sm"></i> econometics</a>  
+          
+
+    </p>
+  </header>
+
+  <article class="post-content">
+    <h1 id="introduction">Introduction</h1>
+
+<p>A linear regression model with \(k\) regressors</p>
+
+\[\label{eq1}
+\mathbf{y}=\mathbf{X}\beta+\mathbf{u}\]
+
+<p>where \(y\) and \(u\)
+are \(n-\)vectors, \(X\) is an \(n\times k\) matrix, and \(\beta\) is
+a \(k-\)vector.</p>
+
+\[\begin{eqnarray}
+\label{eq2}
+y&amp;=&amp;\left[\begin{array}{c}
+y_{1}\\
+y_{2}\\
+\vdots\\
+y_{n}
+\end{array}
+\right],
+\beta=\left[\begin{array}{c}
+\beta_{1}\\
+\beta_{2}\\
+\vdots\\
+\beta_{k}
+\end{array}
+\right],
+u=\left[\begin{array}{c}
+u_{1}\\
+u_{2}\\
+\vdots\\
+u_{n}
+\end{array}
+\right],
+\end{eqnarray}\]
+
+\[\begin{eqnarray}
+\label{eq3}
+X&amp;=&amp;\left[\begin{array}{cccc}
+X_{11}&amp;X_{12}&amp;\cdots&amp;X_{1k}\\
+X_{21}&amp;X_{22}&amp;\cdots&amp;X_{2k}\\
+\vdots&amp;\vdots&amp;&amp;\vdots\\
+X_{n1}&amp;X_{n2}&amp;\cdots&amp;X_{nk}
+\end{array}
+\right]
+\end{eqnarray}\]
+
+<p>A typical row of this equation is</p>
+
+\[\begin{eqnarray}
+\label{eq4}
+y_{t}&amp;=&amp;X_{t}\beta+u_{t}=\sum_{i=1}^{k}\beta_{i}X_{ti}+u_{t}
+\end{eqnarray}\]
+
+<p>where \(X_{t}\) denotes the \(t^{th}\) row of \(X\)
+OLS estimates of the vector \(\beta\) are \(\label{eq5}
+\hat{\beta}=(X^{T}X)^{-1}X^{T}y\)</p>
+
+<ul>
+  <li>
+    <p><strong>numerical properties:</strong> properties of estimates if they have
+nothing to do with how the data were actually generated. Such
+properties hold for every set of data by virtue of the way in which
+\(\hat{\beta}\) is computed, and the fact that they hold can
+always be verified by direct calculation.</p>
+  </li>
+  <li>
+    <p><strong>statistical properties:</strong> depend on unverifiable assumptions about
+how the data were generated, and they can never be verified for any
+actual data set.</p>
+  </li>
+</ul>
+
+<h1 id="the-geometry-of-ols-estimation">The Geometry of OLS Estimation</h1>
+
+<p>We partition \(X\) in terms of its columns as follows,</p>
+
+\[\begin{eqnarray*}
+X&amp;=&amp;\left[\begin{array}{cccc}
+x_{1}&amp;x_{2}&amp;\cdots&amp;x_{k}
+\end{array}
+\right]
+\end{eqnarray*}\]
+
+<p>is just a linear combination of the columns of \(X\).</p>
+
+<p>Then we find that</p>
+
+\[\begin{eqnarray*}
+X\beta&amp;=&amp;\left[\begin{array}{cccc}
+x_{1}&amp;x_{2}&amp;\cdots&amp;x_{k}
+\end{array}
+\right]\left[\begin{array}{c}
+\beta_{1}\\
+\beta_{2}\\
+\vdots\\
+\beta_{k}
+\end{array}
+\right]\\
+&amp;=&amp;x_{1}\beta_{1}+x_{2}\beta_{2}+\dots+x_{k}\beta_{k}=\sum_{i=1}^{k}\beta_{i}x_{i}
+\end{eqnarray*}\]
+
+<p>Any \(n\)-vector \(X\beta\) belongs to \(S(x)\), which is a
+\(k\)-dimensional subspace of \(E^{n}\). In particular, the vector
+\(X\hat{\beta}\) constructed using the OLS estimator
+\(\hat{\beta}\) belongs to this subspace.</p>
+
+<p>The estimator \(\hat{\beta}\) was obtained by solving the equation (\ref{eqp8}).</p>
+
+\[\begin{eqnarray}
+\label{eqp8}
+X^{T}(y-X\hat{\beta})&amp;=&amp;0
+\end{eqnarray}\]
+
+<p>We select a single row of matrix product in (\ref{eqp8}), the \(i^{th}\)
+element is</p>
+
+\[\begin{eqnarray}
+\label{eqp9}
+x^{T}_{i}(y-X\hat{\beta})&amp;=&amp;\langle x^{T}_{i},y-X\hat{\beta}\rangle=0
+\end{eqnarray}\]
+
+<p>(\ref{eqp9}) means that
+the vector \(y-X\hat{\beta}\) is orthogonal to all of the
+regressors \(x_{i}\). As a result, (\ref{eqp8}) is referred to as <strong>orthogonality conditions</strong></p>
+
+<p>(\ref{eqp9}) also means
+that \(\hat{u}\) is orthogonal to all the regressors, which implies
+that \(\hat{u}\) is orthogonal to every vector in \(S(X)\), the
+span of the regressors.</p>
+
+<p>The vector \(X\hat{\beta}\) is referred to as the vector of <strong>fitted
+values</strong>, and it lies in \(S(X)\). Consequently, \(X\hat{\beta}\)
+must be orthogonal to \(\hat{u}\).</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+
+  <picture>
+    <source media="(max-width: 480px)" srcset="/assets/img/DMCh2-3d-regression-480.webp"></source>
+    <source media="(max-width: 800px)" srcset="/assets/img/DMCh2-3d-regression-800.webp"></source>
+    <source media="(max-width: 1400px)" srcset="/assets/img/DMCh2-3d-regression-1400.webp"></source>
+    <!-- Fallback to the original file -->
+    <img class="img-fluid rounded z-depth-1" src="/assets/img/DMCh2-3d-regression.jpg" data-zoomable="">
+  </picture>
+
+</figure>
+
+    </div>
+</div>
+<div class="caption">
+    <b>Linear regression in three dimensions</b>
+</div>
+
+<p>From Figure we observe that the shortest distance from \(y\) to the horizontal
+plane is obtained by descending vertically on to it, and the point in
+the horizontal plane vertically below \(y\) , labeled \(A\) in the
+figure, is the closest point in the plane to \(y\). Thus
+\(\|\hat{u}\|\) minimizes \(\|u(\beta)\|\).</p>
+
+<p>We can see that \(y\) is the hypotenuse of the triangle, the other
+two sides being \(X\hat{\beta}\) and \(\hat{u}\). We have</p>
+
+\[\begin{eqnarray}
+\label{eqp10}
+\|y\|^{2}&amp;=&amp;\|X\hat{\beta}\|^{2}+\|\hat{u}\|^{2}
+\end{eqnarray}\]
+
+<p>We can rerwrite it as scalar products</p>
+
+<p>\(\begin{eqnarray}
+\label{eqp11}
+y^{T}y&amp;=&amp;\hat{\beta}^{T}X^{T}X\hat{\beta}+(y-X\hat{\beta})^{T}(y-X\hat{\beta})
+\end{eqnarray}\) The <strong>total sum of squares(TSS)</strong> is equal to the
+<strong>explained sum of squares(ESS)</strong> plus the <strong>sum of squared
+residuals(SSR)</strong></p>
+
+<h2 id="orthogonal-projections">Orthogonal Projections</h2>
+
+<p>When we estimate a linear regression model, we map the regressand
+\(y\) into a vector of fitted \(X\hat{\beta}\) and a vector of
+residuals \(\hat{u}=y-X\hat{\beta}\). These mappings are
+examples of orthogonal projections.</p>
+
+<p>A <strong>projection</strong> is a mapping that takes each point of \(E^{n}\) into a
+point in a subspace of \(E^{n}\), while leaving all points in that
+subspace unchanged. An <strong>orthogonal projection</strong> maps any point into the
+point of the subspace that is closest to it.</p>
+
+<p>An orthogonal projection on to a given subspace can be performed by
+premultiplying the vector to be projected by a suitable <strong>projection
+matrix</strong>. In OLS, we use the following two projections matrices that
+yield the vector of fitted values and the vector of residuals</p>
+
+\[\begin{eqnarray}
+\label{eqp12}
+P_{X}&amp;=&amp;X\left(X^{T}X\right)^{-1}X^{T}\\
+\nonumber
+M_{X}&amp;=&amp;I-P_{X}=I-X\left(X^{T}X\right)^{-1}X^{T}
+\end{eqnarray}\]
+
+<p>Properties</p>
+
+<ol>
+  <li>
+\[\begin{eqnarray}
+\label{eqp13}
+X\hat{\beta}&amp;=&amp;X(X^{T}X)^{-1}X^{T}y=P_{X}y\\\nonumber
+\hat{u}&amp;=&amp;y-X\hat{\beta}=(I-P_{X})y=M_{X}y
+\end{eqnarray}\]
+
+    <p>(\ref{eqp13}) says that projection matrix \(P_{X}\)
+projects on to \(S(X)\). For any \(n-\)vector \(y\),
+\(P_{X}y\) always lies in \(S(X)\).</p>
+
+    <p>The <strong>image</strong> of \(P_{X}\), which is a shorter name for its
+invariant subspace, is precisely \(S(X)\). The image of
+\(M_{X}\) is \(S^{\bot}(X)\), the orthogonal complement of
+image of \(P_{X}\).</p>
+  </li>
+  <li>
+    <p>Symmetric and idempotent</p>
+
+\[\begin{eqnarray*}
+P_{X}^{T}&amp;=&amp;P_{X}\\
+P_{X}P_{X}&amp;=&amp;P_{X}\\
+M_{X}^{T}&amp;=&amp;M_{X}\\
+M_{X}M_{X}&amp;=&amp;M_{X}
+\end{eqnarray*}\]
+
+    <p>We can think that project a vector it on to
+\(S(X)\), and then project it on to \(S(X)\) again, the second
+projection has no effect at all. So it is left unchanged. For any
+vector \(y\), we have</p>
+
+\[\begin{eqnarray}
+\label{eqp17}
+P_{X}P_{X}y&amp;=&amp;P_{X}y
+\end{eqnarray}\]
+  </li>
+  <li>
+\[\begin{eqnarray*}
+P_{X}X&amp;=&amp;X\\
+M_{X}X&amp;=&amp;0
+\end{eqnarray*}\]
+  </li>
+  <li>
+    <p>\(P_{X}\) and \(M_{X}\) annihilate each other</p>
+
+\[\begin{eqnarray}
+\label{eqp19}
+P_{X}M_{X}&amp;=&amp;0
+\end{eqnarray}\]
+
+    <p>The projection matrix \(M_{X}\) annihilates all
+points that lie in \(S(X)\), and \(P_{X}\) likewise
+annihilates all points that lie in \(S^{\bot}(X)\).</p>
+  </li>
+  <li>
+\[X=\left[\begin{array}{cc}
+x_{1}&amp;x_{2}
+\end{array}\right]\]
+
+\[\begin{eqnarray*}
+P_{x_{1}}&amp;=&amp;P_{X}\\
+P_{x_{1}}P_{X}&amp;=&amp;P_{X}P_{x_{1}}=P_{x_{1}}\\
+M_{x_{1}}&amp;=&amp;M_{X}\\
+M_{x_{1}}M_{X}&amp;=&amp;M_{X}M_{x_{1}}=M_{X}
+\end{eqnarray*}\]
+  </li>
+  <li>
+    <p>Pythagoras’ Theorem</p>
+
+\[\begin{eqnarray*}
+\left\lVert y \right\rVert^{2}&amp;=&amp;\left\lVert P_{X}y \right\rVert ^{2}+\left\lVert M_{X}y \right\rVert^{2}
+\end{eqnarray*}\]
+  </li>
+</ol>
+
+<h2 id="linear-transformations-of-regressors">Linear Transformations of Regressors</h2>
+
+<p>If \(A\) is any nonsingular \(k\times k\) matrix, we postmultiply
+\(X\) by \(A\). It is called a <strong>nonsingular linear
+transformation</strong></p>
+
+\[\begin{eqnarray*}
+XA&amp;=&amp;X\left[\begin{array}{cccc}
+a_{1}&amp;a_{2}&amp;\cdots&amp;a_{k}
+\end{array}\right]\\
+&amp;=&amp;\left[\begin{array}{cccc}
+Xa_{1}&amp;Xa_{2}&amp;\cdots&amp;Xa_{k}
+\end{array}\right]
+\end{eqnarray*}\]
+
+<p>where \(Xa_{i}\) is an \(n-\)vector that is a linear combination of
+columns of \(X\). Thus any element of \(S(XA)\) must be an element
+of \(SX\). Any element of \(S(X)\) is also an element of
+\(S(XA)\). So these two subspaces must be identical. As a result, the
+orthogonal projections \(P_X\) and \(P_{XA}\) should be same.</p>
+
+\[\begin{eqnarray*}
+P_{XA}&amp;=&amp;XA\left(A^{T}X^{T}XA\right)^{-1}A^{T}X^{T}\\
+&amp;=&amp;XAA^{-1}(X^{T}X)^{-1}(A^{T})^{-1}A^{T}X^{T}\\
+&amp;=&amp;X(X^{T}X)^{-1}X^{T}=P_{X}
+\end{eqnarray*}\]
+
+<p>We have known that the vectors of fitted values and residuals depend on
+\(X\) only through \(P_{X}\) and \(M_{X}\). Therefore, they too
+must be invariant to any nonsingular linear transformation of the
+columns of \(X\).</p>
+
+<p>If we replace \(X\) by \(XA\) in the regression
+\(y=X\beta+u\), the residuals and fitted values will not
+change, even though \(\hat{\beta}\) will change.</p>
+
+<h1 id="the-frisch-waugh-lovell-theorem">The Frisch-Waugh-Lovell Theorem</h1>
+
+<p>Consider the following two regressions</p>
+
+\[\begin{eqnarray}
+\label{eq20}
+y&amp;=&amp;X_{1}\beta_{1}+X_{2}\beta_{2}+u\\
+\label{eq21}
+M_{1}y&amp;=&amp;M_{1}X_{2}\beta_{2}+M_{1}u
+\end{eqnarray}\]
+
+<p>::: proposition
+Frisch-Waugh-Lovell Theorem</p>
+
+<ol>
+  <li>
+    <p>The OLS estimates of \(\beta_{2}\) from regressions
+(\ref{eq20}) and
+(\ref{eq21}) are
+numerically identical.</p>
+  </li>
+  <li>
+    <p>The residuals from regressions
+(\ref{eq20}) and
+(\ref{eq21}) are
+numerically identical.
+:::</p>
+  </li>
+</ol>
+
+<p>Let \(\hat{\beta_{2}}\) be the estimates of regression
+(\ref{eq20}) and
+\(\widetilde{\beta_{2}}\) be the estimates of regression
+(\ref{eq21})</p>
+
+<p>::: proof
+<em>Proof.</em> We define \(\hat{\beta_{2}}\) is the OLS estimator for \(\beta_{2}\) in
+(\ref{eq20}) and
+\(\tilde{\beta_{2}}\) is the OLS estimator for \(\beta_{2}\) in
+(\ref{eq21}). We let
+\(\hat{u}\) be the residual for
+(\ref{eq20}) and
+\(\tilde{u}\) for (\ref{eq21}).</p>
+
+<p>First we prove result 1.</p>
+
+\[\begin{eqnarray*}
+\tilde{\beta_{2}}&amp;=&amp;\left((M_{1}X_{2})^{T}M_{1}X_{2}\right)^{-1}(M_{1}X_{2})^{T}M_{1}y\\
+&amp;=&amp;\left(X_{2}^{T}M_{1}X_{2}\right)^{-1}X_{2}^{T}M_{1}y\\
+&amp;=&amp;\left(X_{2}^{T}M_{1}X_{2}\right)^{-1}X_{2}^{T}M_{1}(X_{1}\hat{\beta_{1}}+X_{2}\hat{\beta_{2}}+M_{X}y)\\
+&amp;=&amp;\left(X_{2}^{T}M_{1}X_{2}\right)^{-1}X_{2}^{T}M_{1}X_{2}\hat{\beta_{2}}+X_{2}^{T}M_{1}M_{X}y\\
+&amp;=&amp;\left(X_{2}^{T}M_{1}X_{2}\right)^{-1}X_{2}^{T}M_{1}X_{2}\hat{\beta_{2}}+X_{2}^{T}M_{X}y\\
+&amp;=&amp;\left(X_{2}^{T}M_{1}X_{2}\right)^{-1}X_{2}^{T}M_{1}X_{2}\hat{\beta_{2}}+(M_{X}X_{2})^{T}y\\
+&amp;=&amp;\hat{\beta_{2}}
+\end{eqnarray*}\]
+
+<p>Then we prove result 2</p>
+
+\[\begin{eqnarray*}
+M_{1}y&amp;=&amp;M_{1}(X_{1}\hat{\beta_{1}}+X_{2}\hat{\beta_{2}}+M_{X}y)\\
+&amp;=&amp;M_{1}X_{2}\hat{\beta_{2}}+M_{X}y\\
+&amp;=&amp;M_{1}X_{2}\tilde{\beta_{2}}+M_{X}y\\
+&amp;=&amp;M_{1}X_{2}\tilde{\beta_{2}}+\hat{u}\\
+\end{eqnarray*}\]
+
+<p>We know \(M_{1}y=M_{1}X_{2}\tilde{\beta_{2}}+\tilde{u}\)</p>
+
+<p>Thus we have \(\tilde{u}=\hat{u}\) 
+:::</p>
+
+<h1 id="applications-of-fwl-theorem">Applications of FWL Theorem</h1>
+
+<h2 id="goodness-of-fit-of-a-regression">Goodness of Fit of a Regression</h2>
+
+\[\begin{eqnarray*}
+TSS=\left\lVert y \right\rVert^{2}&amp;=&amp;\left\lVert P_{X}y \right\rVert ^{2}+\left\lVert M_{X}y \right\rVert ^{2}=ESS+SSR
+\end{eqnarray*}\]
+
+<p>And we can define the <strong>goodness of fit</strong> for a regression model. The
+measure is referred to as the \(R^{2}\)</p>
+
+\[\begin{eqnarray}
+\label{eqfwl3}
+R^{2}_{u}&amp;=&amp;\frac{ESS}{TSS}=\frac{\left\lVert P_{X}y \right\rVert ^{2}}{\left\lVert y \right\rVert^{2}}=1-\frac{\left\lVert M_{X}y\right\rVert^{2}}{\left\lVert y\right\rVert^{2}}=1-\frac{SSR}{TSS}=\cos \theta ^{2}
+\end{eqnarray}\]
+
+<p>The \(R^{2}\) defined in (\ref{eqfwl3}) is called the <strong>uncentered</strong> \(R^{2}\). It is
+invariant under nonsingular linear transformations of the regressors,
+e.g. the changes in the scale of \(y\) (the angle \(\theta\) remains same).
+However, it will change when the changes of units change the angle
+\(\theta\).</p>
+
+<p>We define the <strong>centered</strong> \(R^{2}\)</p>
+
+\[\begin{eqnarray}
+\label{eqfwl4}
+R^{2}_{c}&amp;=&amp;\frac{\left\lVert P_{X}M_{\iota}y\right\rVert^{2}}{\left\lVert M_{\iota}y\right\rVert^{2}}=1-\frac{\left\lVert M_{X}y\right\rVert^{2}}{\left\lVert M_{\iota}y\right\rVert^{2}}
+\end{eqnarray}\]
+
+<h1 id="influential-observations-and-leverage">Influential Observations and Leverage</h1>
+
+<p>One or a few observations in a regression are highly <strong>influential</strong>, in
+the sense that deleting them from the sample would change some elements
+of \(\hat{\beta}\) substantially.</p>
+
+<h2 id="leverage">Leverage</h2>
+
+<p>The effect of a single observation on \(\hat{\beta}\) can be seen by
+comparing \(\hat{\beta}\) with \(\hat{\beta}^{t}\), the estimate of \(\beta\) that
+would be obtained if the \(t^{th}\) observation were omitted from the
+sample.</p>
+
+<p>Let</p>
+
+\[e_{t}=\left[\begin{array}{ccccccc}
+0&amp;\cdots&amp;0 &amp;1&amp;0&amp;\cdots&amp;0
+\end{array}\right]^{T}\]
+
+<p>is n \(n\)-vector which has \(t^{th}\) element 1 and
+all other element 0. Including \(e_{t}\) as a regressor</p>
+
+\[\begin{eqnarray}
+\label{eq22}
+y&amp;=&amp;X\beta+\alpha e_{t}+u
+\end{eqnarray}\]
+
+<p>By FWL,</p>
+
+\[\begin{eqnarray}
+\label{eq23}
+M_{t}y&amp;=&amp;M_{t}X\beta+residuals
+\end{eqnarray}\]
+
+<p>where \(M_{t}=M_{e_{t}}=I-e_{t}(e_{t}^{T}e_{t})^{-1}e_{t}^{T}\).
+It is easy to find</p>
+
+\[\begin{eqnarray*}
+M_{t}y&amp;=&amp;y-e_{t}(e_{t}^{T}e_{t})^{-1}e_{t}^{T}y=y-e_{t}e_{t}^{T}y=y-y_{t}e_{t}
+\end{eqnarray*}\]
+
+<p>Thus \(y_{t}\) is subtracted from \(y\) fro the \(t^{th}\)
+observation only. Similarly, \(M_{t}X\) is just \(X\) with its \(t^{th}\)
+row replaced by zeros. Therefore, <strong>running
+(\ref{eq23}) will give the
+same parameter estimates as those that would be obtained if we deleted
+observation \(t\) from the sample.</strong></p>
+
+<p>Let \(P_{Z}\) and \(M_{Z}\) be the orthogonal projections on to and off
+\(S(X,e_{t})\).</p>
+
+\[\begin{eqnarray}
+\label{eq24}
+y&amp;=&amp;P_{Z}y+M_{Z}y=X\hat{\beta}^{t}+\hat{\alpha}e_{t}+M_{Z}y
+\end{eqnarray}\]
+
+<p>Premultiply by \(P_{X}\)</p>
+
+\[\begin{eqnarray*}
+P_{X}y&amp;=&amp;X\hat{\beta}^{t}+\hat{\alpha}P_{X}e_{t}
+\end{eqnarray*}\]
+
+<p>So we have</p>
+
+\[\begin{eqnarray*}
+X\hat{\beta}&amp;=&amp;X\hat{\beta}^{t}+\hat{\alpha}P_{X}e_{t}\\
+X(\hat{\beta}^{t}-\hat{\beta})&amp;=&amp;-\hat{\alpha}P_{X}e_{t}
+\end{eqnarray*}\]
+
+<p>Now we need to calculate \(\hat{\alpha}\). By FWL, from
+(\ref{eq22}) we get</p>
+
+\[\begin{eqnarray*}
+M_{X}y&amp;=&amp;\hat{\alpha}M_{X}e_{t}+residuals
+\end{eqnarray*}\]
+
+<p>and we have</p>
+
+\[\begin{eqnarray*}
+\hat{\alpha}&amp;=&amp;((M_{X}e_{t})^{T}M_{X}e_{t})^{-1}(M_{X}e_{t})^{T}M_{X}y\\
+&amp;=&amp;\frac{e_{t}^{T}M_{X}y}{e_{t}^{T}M_{X}e_{t}}
+\end{eqnarray*}\]
+
+<p>where \(e_{t}^{T}M_{X}y\) is the \(t^{th}\) element of
+\(M_{X}y\) and we denote this element as \(\hat{u}_{t}\). Similarly,
+\(e_{t}^{T}M_{X}e_{t}\) is the \(t^{th}\) diagonal element of \(M_{X}\). So we
+have</p>
+
+<p>\(\begin{eqnarray}
+\label{eq25}
+\hat{\alpha}&amp;=&amp;\frac{\hat{u}_{t}}{1-h_{t}}
+\end{eqnarray}\) where \(h_{t}\) is the \(t^{th}\) diagonal element of
+\(P_{X}\).</p>
+
+<p>So we have</p>
+
+\[\begin{eqnarray*}
+X(\hat{\beta}^{t}-\hat{\beta})&amp;=&amp;-\hat{\alpha}P_{X}e_{t}\\
+(X^{T}X)^{-1}X^{T}X(\hat{\beta}^{t}-\hat{\beta})&amp;=&amp;-\frac{\hat{u}_{t}}{1-h_{t}}(X^{T}X)^{-1}X^{T}P_{X}e_{t}\\
+\hat{\beta}^{t}-\hat{\beta}&amp;=&amp;-\frac{\hat{u}_{t}}{1-h_{t}}(X^{T}X)^{-1}X^{T}P_{X}e_{t}\\
+&amp;=&amp;-\frac{\hat{u}_{t}}{1-h_{t}}(X^{T}X)^{-1}X^{T}_{t}\hat{u}_{t}
+\end{eqnarray*}\]
+
+  </article>
+
+</div>
+
+    </div>
+
+    <!-- Footer -->    
+    <footer class="fixed-bottom">
+      <div class="container mt-0">
+        © Copyright 2023 Lingbo  Shen. Powered by <a href="http://jekyllrb.com/" target="_blank" rel="noopener noreferrer">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio" target="_blank" rel="noopener noreferrer">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank" rel="noopener noreferrer">GitHub Pages</a>.
+
+      </div>
+    </footer>
+  </body>
+
+  <!-- jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+
+  <!-- Bootsrap & MDB scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.4.4/umd/popper.min.js" integrity="sha512-eUQ9hGdLjBjY3F41CScH3UX+4JDSI9zXeroz7hJ+RteoCaY+GP/LDoM8AO+Pt+DRFw3nXqsjh9Zsts8hnYv8/A==" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha512-M5KW3ztuIICmVIhjSqXe01oV2bpe248gOxqmlcYrEzAvws7Pw3z6BK0iGbrwvdrUQUhi3eXgtxp5I8PDo9YfjQ==" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/js/mdb.min.js" integrity="sha512-Mug9KHKmroQFMLm93zGrjhibM2z2Obg9l6qFG2qKjXEXkMp/VDkI4uju9m4QKPjWSwQ6O2qzZEnJDEeCw0Blcw==" crossorigin="anonymous"></script>
+
+  <!-- Mansory & imagesLoaded -->
+  <script defer src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
+  <script defer src="https://unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
+  <script defer src="/assets/js/mansory.js" type="text/javascript"></script>
+  
+  <!-- Medium Zoom JS -->
+  <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js" integrity="sha256-EdPgYcPk/IIrw7FYeuJQexva49pVRZNmt3LculEr7zM=" crossorigin="anonymous"></script>
+  <script src="/assets/js/zoom.js"></script><!-- Load Common JS -->
+  <script src="/assets/js/common.js"></script>
+
+  <!-- MathJax -->
+  <script type="text/javascript">
+    window.MathJax = {
+      tex: {
+        tags: 'ams'
+      }
+    };
+  </script>
+  <script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js"></script>
+  <script defer src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+
+  
+</html>
+

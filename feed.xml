@@ -1,0 +1,3326 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.2">Jekyll</generator><link href="https://lingboshen.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://lingboshen.github.io/" rel="alternate" type="text/html" hreflang="en" /><updated>2023-11-28T02:40:50+00:00</updated><id>https://lingboshen.github.io/feed.xml</id><title type="html">blank</title><subtitle>A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design.
+</subtitle><entry><title type="html">Rmarkdown Github test</title><link href="https://lingboshen.github.io/blog/2023/github-rmarkdown-test/" rel="alternate" type="text/html" title="Rmarkdown Github test" /><published>2023-11-22T00:00:00+00:00</published><updated>2023-11-22T00:00:00+00:00</updated><id>https://lingboshen.github.io/blog/2023/github-rmarkdown-test</id><content type="html" xml:base="https://lingboshen.github.io/blog/2023/github-rmarkdown-test/"><![CDATA[<h2 id="introduction">Introduction</h2>
+
+<p>3C data measuring the interaction frequency between two genomic
+coordinates can be represented graphically in different ways. Often,
+simple barplots are used and comics are drawn to indicate the genomic
+position of anchors and restriction fragments of interest. However, this
+can be tedious and errorprone. 3C data can also be represented as arcs
+spanning from the anchor (aka viewpoint) to the regions of interest (aka
+restriction fragments) rendering a precise illustration of the genomic
+context. In these plots, the interaction frequency correlates with the
+hight of the arc. A published example of such a plot can be found
+<a href="https://www.ncbi.nlm.nih.gov/pubmed/26308897">here</a>. To my knowledge,
+there is no R package that conveniently generates this kind of plot.
+Below is my ggplot solution to generate ‘3C arc plots’. Feel free to
+email me with any questions, improvements or comments.</p>
+
+<h3 id="load-packages-and-set-ggplot-themes">Load packages and set ggplot themes</h3>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># load required packages</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">tidyverse</span><span class="p">)</span><span class="w">
+</span><span class="c1"># these are general theme settings I commonly use for publication-grade plots</span><span class="w">
+</span><span class="n">theme_linedraw_noframe</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">theme_linedraw</span><span class="p">()</span><span class="o">+</span><span class="w">
+  </span><span class="n">theme</span><span class="p">(</span><span class="n">panel.grid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_blank</span><span class="p">(),</span><span class="w">
+        </span><span class="n">panel.border</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_blank</span><span class="p">(),</span><span class="w">
+        </span><span class="n">axis.line</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">element_line</span><span class="p">(),</span><span class="w">
+        </span><span class="n">legend.justification</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">),</span><span class="w">
+        </span><span class="n">legend.position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">))</span><span class="w"> </span><span class="c1"># move the legend into the plot</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="load-data">Load data</h3>
+
+<p>The dummy datasets is an example of an 3C experiment you would do in the
+lab: From one specific anchor, the interaction frequencies to 4
+different fragments of interest are tested in two different conditions
+(control and knock-down). For each condition we have 3 replicates. If
+you would like to follow along, download the dummy data
+<a href="https://jchellmuth.github.io/downloads/2020-01-03-3C-dummy-data.txt">here</a>.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># read 3C data</span><span class="w">
+</span><span class="n">df</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read_tsv</span><span class="p">(</span><span class="s2">"2020-01-03-3C-dummy-data.txt"</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="reformat-data">Reformat data</h3>
+
+<p>The following steps first convert the data to long format (generally
+required for plotting with ggplot) using dplyr’s <code class="language-plaintext highlighter-rouge">gather</code>. We then
+generate the midpoint between anchor and fragment of interest - this is
+essentially the coordinate where the interaction frequency data will be
+plotted. We then summarize the data from all three replicates in each
+group for each assay (i.e. anchor - fragment pair) using dplyr’s
+<code class="language-plaintext highlighter-rouge">group_by</code> and <code class="language-plaintext highlighter-rouge">summarize</code>. To plot a nice arc from anchor, over
+midpoint to fragment of interest coordinates, we need to ‘add back’ the
+anchor and fragment rows to the long format (this is done by another
+<code class="language-plaintext highlighter-rouge">gather</code> command) and set the interaction frequency at these points to 0
+(once you look at the final plot, this will make sense). Because
+ggplot’s <code class="language-plaintext highlighter-rouge">geom_line</code> needs groups to know which points should be
+connected, a new column combining condition and assay.name is generated.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># gather to convert from wide to long format</span><span class="w">
+</span><span class="n">dfg</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">gather</span><span class="p">(</span><span class="o">-</span><span class="n">assay.name</span><span class="p">,</span><span class="o">-</span><span class="n">anchor.coord</span><span class="p">,</span><span class="o">-</span><span class="n">fragment.coord</span><span class="p">,</span><span class="n">key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"sample"</span><span class="p">,</span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"frequency"</span><span class="p">)</span><span class="w">
+</span><span class="c1"># extract condition from sample name</span><span class="w">
+</span><span class="n">dfg</span><span class="o">$</span><span class="n">condition</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">gsub</span><span class="p">(</span><span class="s2">"\\..*"</span><span class="p">,</span><span class="s2">""</span><span class="p">,</span><span class="n">dfg</span><span class="o">$</span><span class="n">sample</span><span class="p">)</span><span class="w">
+</span><span class="c1"># calculate midpoint between each anchor and bait coordinate (the interaction frequency is going to be plotted over this coordinate)</span><span class="w">
+</span><span class="n">dfg</span><span class="o">$</span><span class="n">mid.coord</span><span class="o">=</span><span class="p">(</span><span class="n">dfg</span><span class="o">$</span><span class="n">fragment.coord</span><span class="o">+</span><span class="n">dfg</span><span class="o">$</span><span class="n">anchor.coord</span><span class="p">)</span><span class="o">/</span><span class="m">2</span><span class="w">
+</span><span class="c1"># summarize data</span><span class="w">
+</span><span class="n">dfs</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">dfg</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">group_by</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span><span class="n">anchor.coord</span><span class="p">,</span><span class="n">fragment.coord</span><span class="p">,</span><span class="n">mid.coord</span><span class="p">,</span><span class="n">assay.name</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">summarise</span><span class="p">(</span><span class="n">mean.frequency</span><span class="o">=</span><span class="n">mean</span><span class="p">(</span><span class="n">frequency</span><span class="p">),</span><span class="n">sd.frequency</span><span class="o">=</span><span class="n">sd</span><span class="p">(</span><span class="n">frequency</span><span class="p">))</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## `summarise()` has grouped output by 'condition', 'anchor.coord',
+## 'fragment.coord', 'mid.coord'. You can override using the `.groups` argument.
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># 'add back' anchor and fragment rows using gather and rename key / points</span><span class="w">
+</span><span class="n">dfsg</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">dfs</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">gather</span><span class="p">(</span><span class="o">-</span><span class="n">condition</span><span class="p">,</span><span class="o">-</span><span class="n">mean.frequency</span><span class="p">,</span><span class="o">-</span><span class="n">sd.frequency</span><span class="p">,</span><span class="o">-</span><span class="n">assay.name</span><span class="p">,</span><span class="n">key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">point</span><span class="p">,</span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">coord</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">mutate</span><span class="p">(</span><span class="n">point</span><span class="o">=</span><span class="n">gsub</span><span class="p">(</span><span class="s2">".coord"</span><span class="p">,</span><span class="s2">""</span><span class="p">,</span><span class="n">point</span><span class="p">))</span><span class="w">
+</span><span class="c1"># set anchor and probe frequency to 0:</span><span class="w">
+</span><span class="n">dfsg</span><span class="o">$</span><span class="n">mean.frequency</span><span class="p">[</span><span class="n">dfsg</span><span class="o">$</span><span class="n">point</span><span class="w"> </span><span class="o">%in%</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s2">"anchor"</span><span class="p">,</span><span class="s2">"fragment"</span><span class="p">)]</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="m">0</span><span class="w">
+</span><span class="c1"># add group column (for ggplot's geom_line)</span><span class="w">
+</span><span class="n">dfsg</span><span class="o">$</span><span class="n">group</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">paste0</span><span class="p">(</span><span class="n">dfsg</span><span class="o">$</span><span class="n">condition</span><span class="p">,</span><span class="n">dfsg</span><span class="o">$</span><span class="n">assay.name</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<h2 id="plots">Plots</h2>
+
+<h3 id="3c-arc-plot">3C arc plot</h3>
+
+<p>The basic principle here is to use ggplots <code class="language-plaintext highlighter-rouge">stat_smooth</code> to plot a
+second degree polynomial regression line from the anchor over the
+midpoint to the fragment of interest genomic coordinates. Note that the
+interaction frequency at the anchor and the fragment are set to 0. The
+actual interaction frequency data is plotted to the midpoint.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">p</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ggplot</span><span class="p">(</span><span class="n">dfsg</span><span class="p">,</span><span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">coord</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="n">mean.frequency</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">condition</span><span class="p">,</span><span class="n">group</span><span class="o">=</span><span class="n">group</span><span class="p">))</span><span class="o">+</span><span class="w">
+  </span><span class="n">geom_line</span><span class="p">(</span><span class="n">stat</span><span class="o">=</span><span class="s2">"smooth"</span><span class="p">,</span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"lm"</span><span class="p">,</span><span class="n">formula</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="n">poly</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">),</span><span class="w">
+            </span><span class="n">se</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">,</span><span class="n">lineend</span><span class="o">=</span><span class="s2">"round"</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="m">2</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="m">0.8</span><span class="p">)</span><span class="o">+</span><span class="w">
+  </span><span class="n">scale_color_manual</span><span class="p">(</span><span class="n">values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s2">"firebrick"</span><span class="p">,</span><span class="s2">"grey40"</span><span class="p">))</span><span class="o">+</span><span class="w"> </span><span class="c1"># pick colors manually</span><span class="w">
+  </span><span class="n">labs</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s2">"Relative interaction\nfrequency"</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="s2">"genomic coordinate"</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s2">""</span><span class="p">)</span><span class="o">+</span><span class="w"> </span><span class="c1"># rename axis labels</span><span class="w">
+  </span><span class="n">theme_linedraw_noframe</span><span class="w"> </span><span class="c1"># these are the theme settings defined above</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+## ℹ Please use `linewidth` instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.
+</code></pre></div></div>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">p</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="/assets/img/2020-01-03-3C-arc-plot-1.png" alt="" /></p>
+
+<h3 id="3c-arc-plot-with-errorbars">3C arc plot with errorbars</h3>
+
+<p>If you like, you could add errorbars to this plot - depending on how
+many fragments you are looking at, this could get messy though.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">p</span><span class="o">+</span><span class="n">geom_errorbar</span><span class="p">(</span><span class="n">dfsg</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="n">filter</span><span class="p">(</span><span class="n">point</span><span class="o">==</span><span class="s2">"mid"</span><span class="p">),</span><span class="n">inherit.aes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">F</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="m">0.5</span><span class="p">,</span><span class="w">
+                </span><span class="n">mapping</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">coord</span><span class="p">,</span><span class="n">ymin</span><span class="o">=</span><span class="n">mean.frequency</span><span class="o">-</span><span class="n">sd.frequency</span><span class="p">,</span><span class="n">ymax</span><span class="o">=</span><span class="n">mean.frequency</span><span class="o">+</span><span class="n">sd.frequency</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">condition</span><span class="p">))</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="/assets/img/2020-01-03-3C-arc-plot-w-errorbar-1.png" alt="" /></p>
+
+<h3 id="3c-barplot-with-arcs">3C barplot with arcs</h3>
+
+<p>Of course, 3C data can be represented as simple barplots. Here is a
+barplot where the 3C arcs are added in. Arcs are only represented for
+the most important condition. This could be useful, for example, when
+you have multiple conditions that would overcrowd the 3C arc plot above.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ggplot</span><span class="p">()</span><span class="o">+</span><span class="w">
+  </span><span class="n">geom_line</span><span class="p">(</span><span class="n">dfsg</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="n">filter</span><span class="p">(</span><span class="n">condition</span><span class="o">==</span><span class="s2">"control"</span><span class="p">),</span><span class="n">mapping</span><span class="o">=</span><span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">coord</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="n">mean.frequency</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">condition</span><span class="p">,</span><span class="n">group</span><span class="o">=</span><span class="n">group</span><span class="p">),</span><span class="w">
+            </span><span class="n">stat</span><span class="o">=</span><span class="s2">"smooth"</span><span class="p">,</span><span class="n">method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"lm"</span><span class="p">,</span><span class="n">formula</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="n">poly</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">),</span><span class="w">
+            </span><span class="n">se</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">,</span><span class="n">lineend</span><span class="o">=</span><span class="s2">"round"</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="m">2</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="m">0.8</span><span class="p">)</span><span class="o">+</span><span class="w">
+  </span><span class="n">geom_bar</span><span class="p">(</span><span class="n">dfs</span><span class="p">,</span><span class="w">
+           </span><span class="n">mapping</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">fragment.coord</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="n">mean.frequency</span><span class="p">,</span><span class="n">fill</span><span class="o">=</span><span class="n">condition</span><span class="p">),</span><span class="w">
+           </span><span class="n">stat</span><span class="o">=</span><span class="s1">'identity'</span><span class="p">,</span><span class="n">position</span><span class="o">=</span><span class="n">position_dodge</span><span class="p">())</span><span class="o">+</span><span class="w">
+  </span><span class="n">scale_color_manual</span><span class="p">(</span><span class="n">values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s2">"firebrick"</span><span class="p">,</span><span class="s2">"grey40"</span><span class="p">))</span><span class="o">+</span><span class="w"> </span><span class="c1"># pick colors manually</span><span class="w">
+  </span><span class="n">scale_fill_manual</span><span class="p">(</span><span class="n">values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s2">"firebrick"</span><span class="p">,</span><span class="s2">"grey40"</span><span class="p">))</span><span class="o">+</span><span class="w"> </span><span class="c1"># pick colors manually</span><span class="w">
+  </span><span class="n">labs</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="s2">"Relative interaction\nfrequency"</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="s2">"genomic coordinate"</span><span class="p">,</span><span class="n">fill</span><span class="o">=</span><span class="s2">""</span><span class="p">)</span><span class="o">+</span><span class="w"> </span><span class="c1"># rename axis labels</span><span class="w">
+  </span><span class="n">theme_linedraw_noframe</span><span class="o">+</span><span class="w"> </span><span class="c1"># these are the theme settings defined above</span><span class="w">
+  </span><span class="n">guides</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="nb">F</span><span class="p">)</span><span class="w">
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Warning: The `&lt;scale&gt;` argument of `guides()` cannot be `FALSE`. Use "none" instead as
+## of ggplot2 3.3.4.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.
+</code></pre></div></div>
+
+<p><img src="/assets/img/2020-01-03-3C-arc-plot-w-barplot-1.png" alt="" /></p>]]></content><author><name>Lingbo Shen</name></author><category term="code" /><category term="ggplot" /><category term="visualization" /><category term="tutorial" /><summary type="html"><![CDATA[Introduction]]></summary></entry><entry><title type="html">Davidson and MacKinnon Chapter 2—The Geometry of Linear Regression</title><link href="https://lingboshen.github.io/blog/2022/DMCh2/" rel="alternate" type="text/html" title="Davidson and MacKinnon Chapter 2—The Geometry of Linear Regression" /><published>2022-10-23T15:12:00+00:00</published><updated>2022-10-23T15:12:00+00:00</updated><id>https://lingboshen.github.io/blog/2022/DMCh2</id><content type="html" xml:base="https://lingboshen.github.io/blog/2022/DMCh2/"><![CDATA[<h1 id="introduction">Introduction</h1>
+
+<p>A linear regression model with \(k\) regressors</p>
+
+\[\label{eq1}
+\mathbf{y}=\mathbf{X}\beta+\mathbf{u}\]
+
+<p>where \(y\) and \(u\)
+are \(n-\)vectors, \(X\) is an \(n\times k\) matrix, and \(\beta\) is
+a \(k-\)vector.</p>
+
+\[\begin{eqnarray}
+\label{eq2}
+y&amp;=&amp;\left[\begin{array}{c}
+y_{1}\\
+y_{2}\\
+\vdots\\
+y_{n}
+\end{array}
+\right],
+\beta=\left[\begin{array}{c}
+\beta_{1}\\
+\beta_{2}\\
+\vdots\\
+\beta_{k}
+\end{array}
+\right],
+u=\left[\begin{array}{c}
+u_{1}\\
+u_{2}\\
+\vdots\\
+u_{n}
+\end{array}
+\right],
+\end{eqnarray}\]
+
+\[\begin{eqnarray}
+\label{eq3}
+X&amp;=&amp;\left[\begin{array}{cccc}
+X_{11}&amp;X_{12}&amp;\cdots&amp;X_{1k}\\
+X_{21}&amp;X_{22}&amp;\cdots&amp;X_{2k}\\
+\vdots&amp;\vdots&amp;&amp;\vdots\\
+X_{n1}&amp;X_{n2}&amp;\cdots&amp;X_{nk}
+\end{array}
+\right]
+\end{eqnarray}\]
+
+<p>A typical row of this equation is</p>
+
+\[\begin{eqnarray}
+\label{eq4}
+y_{t}&amp;=&amp;X_{t}\beta+u_{t}=\sum_{i=1}^{k}\beta_{i}X_{ti}+u_{t}
+\end{eqnarray}\]
+
+<p>where \(X_{t}\) denotes the \(t^{th}\) row of \(X\)
+OLS estimates of the vector \(\beta\) are \(\label{eq5}
+\hat{\beta}=(X^{T}X)^{-1}X^{T}y\)</p>
+
+<ul>
+  <li>
+    <p><strong>numerical properties:</strong> properties of estimates if they have
+nothing to do with how the data were actually generated. Such
+properties hold for every set of data by virtue of the way in which
+\(\hat{\beta}\) is computed, and the fact that they hold can
+always be verified by direct calculation.</p>
+  </li>
+  <li>
+    <p><strong>statistical properties:</strong> depend on unverifiable assumptions about
+how the data were generated, and they can never be verified for any
+actual data set.</p>
+  </li>
+</ul>
+
+<h1 id="the-geometry-of-ols-estimation">The Geometry of OLS Estimation</h1>
+
+<p>We partition \(X\) in terms of its columns as follows,</p>
+
+\[\begin{eqnarray*}
+X&amp;=&amp;\left[\begin{array}{cccc}
+x_{1}&amp;x_{2}&amp;\cdots&amp;x_{k}
+\end{array}
+\right]
+\end{eqnarray*}\]
+
+<p>is just a linear combination of the columns of \(X\).</p>
+
+<p>Then we find that</p>
+
+\[\begin{eqnarray*}
+X\beta&amp;=&amp;\left[\begin{array}{cccc}
+x_{1}&amp;x_{2}&amp;\cdots&amp;x_{k}
+\end{array}
+\right]\left[\begin{array}{c}
+\beta_{1}\\
+\beta_{2}\\
+\vdots\\
+\beta_{k}
+\end{array}
+\right]\\
+&amp;=&amp;x_{1}\beta_{1}+x_{2}\beta_{2}+\dots+x_{k}\beta_{k}=\sum_{i=1}^{k}\beta_{i}x_{i}
+\end{eqnarray*}\]
+
+<p>Any \(n\)-vector \(X\beta\) belongs to \(S(x)\), which is a
+\(k\)-dimensional subspace of \(E^{n}\). In particular, the vector
+\(X\hat{\beta}\) constructed using the OLS estimator
+\(\hat{\beta}\) belongs to this subspace.</p>
+
+<p>The estimator \(\hat{\beta}\) was obtained by solving the equation (\ref{eqp8}).</p>
+
+\[\begin{eqnarray}
+\label{eqp8}
+X^{T}(y-X\hat{\beta})&amp;=&amp;0
+\end{eqnarray}\]
+
+<p>We select a single row of matrix product in (\ref{eqp8}), the \(i^{th}\)
+element is</p>
+
+\[\begin{eqnarray}
+\label{eqp9}
+x^{T}_{i}(y-X\hat{\beta})&amp;=&amp;\langle x^{T}_{i},y-X\hat{\beta}\rangle=0
+\end{eqnarray}\]
+
+<p>(\ref{eqp9}) means that
+the vector \(y-X\hat{\beta}\) is orthogonal to all of the
+regressors \(x_{i}\). As a result, (\ref{eqp8}) is referred to as <strong>orthogonality conditions</strong></p>
+
+<p>(\ref{eqp9}) also means
+that \(\hat{u}\) is orthogonal to all the regressors, which implies
+that \(\hat{u}\) is orthogonal to every vector in \(S(X)\), the
+span of the regressors.</p>
+
+<p>The vector \(X\hat{\beta}\) is referred to as the vector of <strong>fitted
+values</strong>, and it lies in \(S(X)\). Consequently, \(X\hat{\beta}\)
+must be orthogonal to \(\hat{u}\).</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+
+  <picture>
+    <source media="(max-width: 480px)" srcset="/assets/img/DMCh2-3d-regression-480.webp" />
+    <source media="(max-width: 800px)" srcset="/assets/img/DMCh2-3d-regression-800.webp" />
+    <source media="(max-width: 1400px)" srcset="/assets/img/DMCh2-3d-regression-1400.webp" />
+    <!-- Fallback to the original file -->
+    <img class="img-fluid rounded z-depth-1" src="/assets/img/DMCh2-3d-regression.jpg" data-zoomable="" />
+  </picture>
+
+</figure>
+
+    </div>
+</div>
+<div class="caption">
+    <b>Linear regression in three dimensions</b>
+</div>
+
+<p>From Figure we observe that the shortest distance from \(y\) to the horizontal
+plane is obtained by descending vertically on to it, and the point in
+the horizontal plane vertically below \(y\) , labeled \(A\) in the
+figure, is the closest point in the plane to \(y\). Thus
+\(\|\hat{u}\|\) minimizes \(\|u(\beta)\|\).</p>
+
+<p>We can see that \(y\) is the hypotenuse of the triangle, the other
+two sides being \(X\hat{\beta}\) and \(\hat{u}\). We have</p>
+
+\[\begin{eqnarray}
+\label{eqp10}
+\|y\|^{2}&amp;=&amp;\|X\hat{\beta}\|^{2}+\|\hat{u}\|^{2}
+\end{eqnarray}\]
+
+<p>We can rerwrite it as scalar products</p>
+
+<p>\(\begin{eqnarray}
+\label{eqp11}
+y^{T}y&amp;=&amp;\hat{\beta}^{T}X^{T}X\hat{\beta}+(y-X\hat{\beta})^{T}(y-X\hat{\beta})
+\end{eqnarray}\) The <strong>total sum of squares(TSS)</strong> is equal to the
+<strong>explained sum of squares(ESS)</strong> plus the <strong>sum of squared
+residuals(SSR)</strong></p>
+
+<h2 id="orthogonal-projections">Orthogonal Projections</h2>
+
+<p>When we estimate a linear regression model, we map the regressand
+\(y\) into a vector of fitted \(X\hat{\beta}\) and a vector of
+residuals \(\hat{u}=y-X\hat{\beta}\). These mappings are
+examples of orthogonal projections.</p>
+
+<p>A <strong>projection</strong> is a mapping that takes each point of \(E^{n}\) into a
+point in a subspace of \(E^{n}\), while leaving all points in that
+subspace unchanged. An <strong>orthogonal projection</strong> maps any point into the
+point of the subspace that is closest to it.</p>
+
+<p>An orthogonal projection on to a given subspace can be performed by
+premultiplying the vector to be projected by a suitable <strong>projection
+matrix</strong>. In OLS, we use the following two projections matrices that
+yield the vector of fitted values and the vector of residuals</p>
+
+\[\begin{eqnarray}
+\label{eqp12}
+P_{X}&amp;=&amp;X\left(X^{T}X\right)^{-1}X^{T}\\
+\nonumber
+M_{X}&amp;=&amp;I-P_{X}=I-X\left(X^{T}X\right)^{-1}X^{T}
+\end{eqnarray}\]
+
+<p>Properties</p>
+
+<ol>
+  <li>
+\[\begin{eqnarray}
+\label{eqp13}
+X\hat{\beta}&amp;=&amp;X(X^{T}X)^{-1}X^{T}y=P_{X}y\\\nonumber
+\hat{u}&amp;=&amp;y-X\hat{\beta}=(I-P_{X})y=M_{X}y
+\end{eqnarray}\]
+
+    <p>(\ref{eqp13}) says that projection matrix \(P_{X}\)
+projects on to \(S(X)\). For any \(n-\)vector \(y\),
+\(P_{X}y\) always lies in \(S(X)\).</p>
+
+    <p>The <strong>image</strong> of \(P_{X}\), which is a shorter name for its
+invariant subspace, is precisely \(S(X)\). The image of
+\(M_{X}\) is \(S^{\bot}(X)\), the orthogonal complement of
+image of \(P_{X}\).</p>
+  </li>
+  <li>
+    <p>Symmetric and idempotent</p>
+
+\[\begin{eqnarray*}
+P_{X}^{T}&amp;=&amp;P_{X}\\
+P_{X}P_{X}&amp;=&amp;P_{X}\\
+M_{X}^{T}&amp;=&amp;M_{X}\\
+M_{X}M_{X}&amp;=&amp;M_{X}
+\end{eqnarray*}\]
+
+    <p>We can think that project a vector it on to
+\(S(X)\), and then project it on to \(S(X)\) again, the second
+projection has no effect at all. So it is left unchanged. For any
+vector \(y\), we have</p>
+
+\[\begin{eqnarray}
+\label{eqp17}
+P_{X}P_{X}y&amp;=&amp;P_{X}y
+\end{eqnarray}\]
+  </li>
+  <li>
+\[\begin{eqnarray*}
+P_{X}X&amp;=&amp;X\\
+M_{X}X&amp;=&amp;0
+\end{eqnarray*}\]
+  </li>
+  <li>
+    <p>\(P_{X}\) and \(M_{X}\) annihilate each other</p>
+
+\[\begin{eqnarray}
+\label{eqp19}
+P_{X}M_{X}&amp;=&amp;0
+\end{eqnarray}\]
+
+    <p>The projection matrix \(M_{X}\) annihilates all
+points that lie in \(S(X)\), and \(P_{X}\) likewise
+annihilates all points that lie in \(S^{\bot}(X)\).</p>
+  </li>
+  <li>
+\[X=\left[\begin{array}{cc}
+x_{1}&amp;x_{2}
+\end{array}\right]\]
+
+\[\begin{eqnarray*}
+P_{x_{1}}&amp;=&amp;P_{X}\\
+P_{x_{1}}P_{X}&amp;=&amp;P_{X}P_{x_{1}}=P_{x_{1}}\\
+M_{x_{1}}&amp;=&amp;M_{X}\\
+M_{x_{1}}M_{X}&amp;=&amp;M_{X}M_{x_{1}}=M_{X}
+\end{eqnarray*}\]
+  </li>
+  <li>
+    <p>Pythagoras’ Theorem</p>
+
+\[\begin{eqnarray*}
+\left\lVert y \right\rVert^{2}&amp;=&amp;\left\lVert P_{X}y \right\rVert ^{2}+\left\lVert M_{X}y \right\rVert^{2}
+\end{eqnarray*}\]
+  </li>
+</ol>
+
+<h2 id="linear-transformations-of-regressors">Linear Transformations of Regressors</h2>
+
+<p>If \(A\) is any nonsingular \(k\times k\) matrix, we postmultiply
+\(X\) by \(A\). It is called a <strong>nonsingular linear
+transformation</strong></p>
+
+\[\begin{eqnarray*}
+XA&amp;=&amp;X\left[\begin{array}{cccc}
+a_{1}&amp;a_{2}&amp;\cdots&amp;a_{k}
+\end{array}\right]\\
+&amp;=&amp;\left[\begin{array}{cccc}
+Xa_{1}&amp;Xa_{2}&amp;\cdots&amp;Xa_{k}
+\end{array}\right]
+\end{eqnarray*}\]
+
+<p>where \(Xa_{i}\) is an \(n-\)vector that is a linear combination of
+columns of \(X\). Thus any element of \(S(XA)\) must be an element
+of \(SX\). Any element of \(S(X)\) is also an element of
+\(S(XA)\). So these two subspaces must be identical. As a result, the
+orthogonal projections \(P_X\) and \(P_{XA}\) should be same.</p>
+
+\[\begin{eqnarray*}
+P_{XA}&amp;=&amp;XA\left(A^{T}X^{T}XA\right)^{-1}A^{T}X^{T}\\
+&amp;=&amp;XAA^{-1}(X^{T}X)^{-1}(A^{T})^{-1}A^{T}X^{T}\\
+&amp;=&amp;X(X^{T}X)^{-1}X^{T}=P_{X}
+\end{eqnarray*}\]
+
+<p>We have known that the vectors of fitted values and residuals depend on
+\(X\) only through \(P_{X}\) and \(M_{X}\). Therefore, they too
+must be invariant to any nonsingular linear transformation of the
+columns of \(X\).</p>
+
+<p>If we replace \(X\) by \(XA\) in the regression
+\(y=X\beta+u\), the residuals and fitted values will not
+change, even though \(\hat{\beta}\) will change.</p>
+
+<h1 id="the-frisch-waugh-lovell-theorem">The Frisch-Waugh-Lovell Theorem</h1>
+
+<p>Consider the following two regressions</p>
+
+\[\begin{eqnarray}
+\label{eq20}
+y&amp;=&amp;X_{1}\beta_{1}+X_{2}\beta_{2}+u\\
+\label{eq21}
+M_{1}y&amp;=&amp;M_{1}X_{2}\beta_{2}+M_{1}u
+\end{eqnarray}\]
+
+<p>::: proposition
+Frisch-Waugh-Lovell Theorem</p>
+
+<ol>
+  <li>
+    <p>The OLS estimates of \(\beta_{2}\) from regressions
+(\ref{eq20}) and
+(\ref{eq21}) are
+numerically identical.</p>
+  </li>
+  <li>
+    <p>The residuals from regressions
+(\ref{eq20}) and
+(\ref{eq21}) are
+numerically identical.
+:::</p>
+  </li>
+</ol>
+
+<p>Let \(\hat{\beta_{2}}\) be the estimates of regression
+(\ref{eq20}) and
+\(\widetilde{\beta_{2}}\) be the estimates of regression
+(\ref{eq21})</p>
+
+<p>::: proof
+<em>Proof.</em> We define \(\hat{\beta_{2}}\) is the OLS estimator for \(\beta_{2}\) in
+(\ref{eq20}) and
+\(\tilde{\beta_{2}}\) is the OLS estimator for \(\beta_{2}\) in
+(\ref{eq21}). We let
+\(\hat{u}\) be the residual for
+(\ref{eq20}) and
+\(\tilde{u}\) for (\ref{eq21}).</p>
+
+<p>First we prove result 1.</p>
+
+\[\begin{eqnarray*}
+\tilde{\beta_{2}}&amp;=&amp;\left((M_{1}X_{2})^{T}M_{1}X_{2}\right)^{-1}(M_{1}X_{2})^{T}M_{1}y\\
+&amp;=&amp;\left(X_{2}^{T}M_{1}X_{2}\right)^{-1}X_{2}^{T}M_{1}y\\
+&amp;=&amp;\left(X_{2}^{T}M_{1}X_{2}\right)^{-1}X_{2}^{T}M_{1}(X_{1}\hat{\beta_{1}}+X_{2}\hat{\beta_{2}}+M_{X}y)\\
+&amp;=&amp;\left(X_{2}^{T}M_{1}X_{2}\right)^{-1}X_{2}^{T}M_{1}X_{2}\hat{\beta_{2}}+X_{2}^{T}M_{1}M_{X}y\\
+&amp;=&amp;\left(X_{2}^{T}M_{1}X_{2}\right)^{-1}X_{2}^{T}M_{1}X_{2}\hat{\beta_{2}}+X_{2}^{T}M_{X}y\\
+&amp;=&amp;\left(X_{2}^{T}M_{1}X_{2}\right)^{-1}X_{2}^{T}M_{1}X_{2}\hat{\beta_{2}}+(M_{X}X_{2})^{T}y\\
+&amp;=&amp;\hat{\beta_{2}}
+\end{eqnarray*}\]
+
+<p>Then we prove result 2</p>
+
+\[\begin{eqnarray*}
+M_{1}y&amp;=&amp;M_{1}(X_{1}\hat{\beta_{1}}+X_{2}\hat{\beta_{2}}+M_{X}y)\\
+&amp;=&amp;M_{1}X_{2}\hat{\beta_{2}}+M_{X}y\\
+&amp;=&amp;M_{1}X_{2}\tilde{\beta_{2}}+M_{X}y\\
+&amp;=&amp;M_{1}X_{2}\tilde{\beta_{2}}+\hat{u}\\
+\end{eqnarray*}\]
+
+<p>We know \(M_{1}y=M_{1}X_{2}\tilde{\beta_{2}}+\tilde{u}\)</p>
+
+<p>Thus we have \(\tilde{u}=\hat{u}\) 
+:::</p>
+
+<h1 id="applications-of-fwl-theorem">Applications of FWL Theorem</h1>
+
+<h2 id="goodness-of-fit-of-a-regression">Goodness of Fit of a Regression</h2>
+
+\[\begin{eqnarray*}
+TSS=\left\lVert y \right\rVert^{2}&amp;=&amp;\left\lVert P_{X}y \right\rVert ^{2}+\left\lVert M_{X}y \right\rVert ^{2}=ESS+SSR
+\end{eqnarray*}\]
+
+<p>And we can define the <strong>goodness of fit</strong> for a regression model. The
+measure is referred to as the \(R^{2}\)</p>
+
+\[\begin{eqnarray}
+\label{eqfwl3}
+R^{2}_{u}&amp;=&amp;\frac{ESS}{TSS}=\frac{\left\lVert P_{X}y \right\rVert ^{2}}{\left\lVert y \right\rVert^{2}}=1-\frac{\left\lVert M_{X}y\right\rVert^{2}}{\left\lVert y\right\rVert^{2}}=1-\frac{SSR}{TSS}=\cos \theta ^{2}
+\end{eqnarray}\]
+
+<p>The \(R^{2}\) defined in (\ref{eqfwl3}) is called the <strong>uncentered</strong> \(R^{2}\). It is
+invariant under nonsingular linear transformations of the regressors,
+e.g. the changes in the scale of \(y\) (the angle \(\theta\) remains same).
+However, it will change when the changes of units change the angle
+\(\theta\).</p>
+
+<p>We define the <strong>centered</strong> \(R^{2}\)</p>
+
+\[\begin{eqnarray}
+\label{eqfwl4}
+R^{2}_{c}&amp;=&amp;\frac{\left\lVert P_{X}M_{\iota}y\right\rVert^{2}}{\left\lVert M_{\iota}y\right\rVert^{2}}=1-\frac{\left\lVert M_{X}y\right\rVert^{2}}{\left\lVert M_{\iota}y\right\rVert^{2}}
+\end{eqnarray}\]
+
+<h1 id="influential-observations-and-leverage">Influential Observations and Leverage</h1>
+
+<p>One or a few observations in a regression are highly <strong>influential</strong>, in
+the sense that deleting them from the sample would change some elements
+of \(\hat{\beta}\) substantially.</p>
+
+<h2 id="leverage">Leverage</h2>
+
+<p>The effect of a single observation on \(\hat{\beta}\) can be seen by
+comparing \(\hat{\beta}\) with \(\hat{\beta}^{t}\), the estimate of \(\beta\) that
+would be obtained if the \(t^{th}\) observation were omitted from the
+sample.</p>
+
+<p>Let</p>
+
+\[e_{t}=\left[\begin{array}{ccccccc}
+0&amp;\cdots&amp;0 &amp;1&amp;0&amp;\cdots&amp;0
+\end{array}\right]^{T}\]
+
+<p>is n \(n\)-vector which has \(t^{th}\) element 1 and
+all other element 0. Including \(e_{t}\) as a regressor</p>
+
+\[\begin{eqnarray}
+\label{eq22}
+y&amp;=&amp;X\beta+\alpha e_{t}+u
+\end{eqnarray}\]
+
+<p>By FWL,</p>
+
+\[\begin{eqnarray}
+\label{eq23}
+M_{t}y&amp;=&amp;M_{t}X\beta+residuals
+\end{eqnarray}\]
+
+<p>where \(M_{t}=M_{e_{t}}=I-e_{t}(e_{t}^{T}e_{t})^{-1}e_{t}^{T}\).
+It is easy to find</p>
+
+\[\begin{eqnarray*}
+M_{t}y&amp;=&amp;y-e_{t}(e_{t}^{T}e_{t})^{-1}e_{t}^{T}y=y-e_{t}e_{t}^{T}y=y-y_{t}e_{t}
+\end{eqnarray*}\]
+
+<p>Thus \(y_{t}\) is subtracted from \(y\) fro the \(t^{th}\)
+observation only. Similarly, \(M_{t}X\) is just \(X\) with its \(t^{th}\)
+row replaced by zeros. Therefore, <strong>running
+(\ref{eq23}) will give the
+same parameter estimates as those that would be obtained if we deleted
+observation \(t\) from the sample.</strong></p>
+
+<p>Let \(P_{Z}\) and \(M_{Z}\) be the orthogonal projections on to and off
+\(S(X,e_{t})\).</p>
+
+\[\begin{eqnarray}
+\label{eq24}
+y&amp;=&amp;P_{Z}y+M_{Z}y=X\hat{\beta}^{t}+\hat{\alpha}e_{t}+M_{Z}y
+\end{eqnarray}\]
+
+<p>Premultiply by \(P_{X}\)</p>
+
+\[\begin{eqnarray*}
+P_{X}y&amp;=&amp;X\hat{\beta}^{t}+\hat{\alpha}P_{X}e_{t}
+\end{eqnarray*}\]
+
+<p>So we have</p>
+
+\[\begin{eqnarray*}
+X\hat{\beta}&amp;=&amp;X\hat{\beta}^{t}+\hat{\alpha}P_{X}e_{t}\\
+X(\hat{\beta}^{t}-\hat{\beta})&amp;=&amp;-\hat{\alpha}P_{X}e_{t}
+\end{eqnarray*}\]
+
+<p>Now we need to calculate \(\hat{\alpha}\). By FWL, from
+(\ref{eq22}) we get</p>
+
+\[\begin{eqnarray*}
+M_{X}y&amp;=&amp;\hat{\alpha}M_{X}e_{t}+residuals
+\end{eqnarray*}\]
+
+<p>and we have</p>
+
+\[\begin{eqnarray*}
+\hat{\alpha}&amp;=&amp;((M_{X}e_{t})^{T}M_{X}e_{t})^{-1}(M_{X}e_{t})^{T}M_{X}y\\
+&amp;=&amp;\frac{e_{t}^{T}M_{X}y}{e_{t}^{T}M_{X}e_{t}}
+\end{eqnarray*}\]
+
+<p>where \(e_{t}^{T}M_{X}y\) is the \(t^{th}\) element of
+\(M_{X}y\) and we denote this element as \(\hat{u}_{t}\). Similarly,
+\(e_{t}^{T}M_{X}e_{t}\) is the \(t^{th}\) diagonal element of \(M_{X}\). So we
+have</p>
+
+<p>\(\begin{eqnarray}
+\label{eq25}
+\hat{\alpha}&amp;=&amp;\frac{\hat{u}_{t}}{1-h_{t}}
+\end{eqnarray}\) where \(h_{t}\) is the \(t^{th}\) diagonal element of
+\(P_{X}\).</p>
+
+<p>So we have</p>
+
+\[\begin{eqnarray*}
+X(\hat{\beta}^{t}-\hat{\beta})&amp;=&amp;-\hat{\alpha}P_{X}e_{t}\\
+(X^{T}X)^{-1}X^{T}X(\hat{\beta}^{t}-\hat{\beta})&amp;=&amp;-\frac{\hat{u}_{t}}{1-h_{t}}(X^{T}X)^{-1}X^{T}P_{X}e_{t}\\
+\hat{\beta}^{t}-\hat{\beta}&amp;=&amp;-\frac{\hat{u}_{t}}{1-h_{t}}(X^{T}X)^{-1}X^{T}P_{X}e_{t}\\
+&amp;=&amp;-\frac{\hat{u}_{t}}{1-h_{t}}(X^{T}X)^{-1}X^{T}_{t}\hat{u}_{t}
+\end{eqnarray*}\]]]></content><author><name></name></author><category term="note" /><category term="econometics" /><summary type="html"><![CDATA[The second chapter of Econometric Theory and Methods]]></summary></entry><entry><title type="html">Davidson and MacKinnon Chapter 3—The Statistical Properties of Ordinary Least Squares</title><link href="https://lingboshen.github.io/blog/2022/DMCh3/" rel="alternate" type="text/html" title="Davidson and MacKinnon Chapter 3—The Statistical Properties of Ordinary Least Squares" /><published>2022-10-23T15:12:00+00:00</published><updated>2022-10-23T15:12:00+00:00</updated><id>https://lingboshen.github.io/blog/2022/DMCh3</id><content type="html" xml:base="https://lingboshen.github.io/blog/2022/DMCh3/"><![CDATA[<h1 id="introduction">Introduction</h1>
+
+\[\begin{eqnarray}
+\label{eqo1}
+y=X\beta+u&amp;,&amp; u\sim \mbox{IID}(0,\sigma^{2}I)
+\end{eqnarray}\]
+
+<p>where \(y\) and \(u\) are \(n\)-vectors, \(X\) is an \(n\times k\) matrix, and \(\beta\) is a \(k\)-vector.</p>
+
+<p>And the OLS estimator is</p>
+
+\[\begin{eqnarray}
+\label{eqo2}
+\hat{\beta}&amp;=&amp;(X^{T}X)^{-1}X^{T}y
+\end{eqnarray}\]
+
+<h1 id="are-ols-estimator-unbiased">Are OLS Estimator Unbiased?</h1>
+
+\[\begin{eqnarray}
+\nonumber
+\hat{\beta}&amp;=&amp;(X^{T}X)^{-1}X^{T}(X\beta+u)\\
+\label{eqo3}
+&amp;=&amp;\beta+(X^{T}X)^{-1}X^{T}u
+\end{eqnarray}\]
+
+<p><strong>Assumption</strong>:</p>
+
+\[E(X|u)=0\]
+
+<p>Take conditional expectation with respect to (\ref{eqo3}), then it becomes</p>
+
+\[\begin{eqnarray}
+\nonumber
+E(\hat{\beta}|X)&amp;=&amp;\beta+E[(X^{T}X)^{-1}X^{T}u|X]\\\nonumber
+&amp;=&amp;\beta+(X^{T}X)^{-1}X^{T}E(u|X)\\
+\label{eqo4}
+&amp;=&amp;\beta
+\end{eqnarray}\]
+
+<p>By Law of Iterated Expectations, we have</p>
+
+\[\begin{eqnarray}
+\label{eqo5}
+E(\hat{\beta})&amp;=&amp;E\left(E(\hat{\beta}|X)\right)=E(\beta)=\beta
+\end{eqnarray}\]
+
+<p>The Assumption 1 maybe too strong for <strong>time-series data</strong>. We can make following assumption</p>
+
+\[\begin{eqnarray}
+\label{eqo6}
+E(u_{t}|X_{t})&amp;=&amp;0
+\end{eqnarray}\]
+
+<p>We refer (\ref{eqo6}) as a <strong>predeterminedness</strong> condition.</p>
+
+<h1 id="are-ols-estimator-consistent">Are OLS Estimator Consistent</h1>
+<p>If the sample size is large enough, the estimate will be close to the true value.</p>
+
+<p>Probability Limits</p>
+
+\[\begin{eqnarray}
+\label{eqo7}
+\mathop{plim}_{n\to\infty} a(y^{n})&amp;=&amp;a_{0}\\
+\label{eqo8}
+\lim_{n\to\infty}\Pr\left(||a(y^{n})-a_{0}||&lt;\varepsilon\right)&amp;=&amp;1
+\end{eqnarray}\]
+
+<p><strong>Law of large numbers (LLN)</strong>: suppose that \(\bar{x}\) is the sample mean of \(x_{t}\), \(t=1,\dots, n\), a sequence of random variables, each with expectation \(\mu\). Then provided the \(x_{t}\) are independent, a law of large numbers would state that</p>
+
+\[\begin{eqnarray}
+\label{eqo9}
+\mathop{plim}_{n\to\infty}\bar{x}&amp;=&amp;\mathop{plim}_{n\to\infty}\frac{1}{n}\sum_{t=1}^{n}x_{t}=\mu
+\end{eqnarray}\]
+
+<p>\(\bar{x}\) has a nonstochastic \mathop{plim} which is equal to the common expectation of each of the \(x_{t}\).</p>
+
+<p>OLS is consistent</p>
+
+<p><strong>Assumption</strong>: \(\mathop{plim}_{n\to\infty}\frac{1}{n}X^{T}X=S_{X^{T}X}\)</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td><strong>Assumption</strong>: $$E(u_{t}</td>
+      <td>x_{t})=0$$</td>
+    </tr>
+  </tbody>
+</table>
+
+\[\begin{eqnarray}
+\nonumber
+\mathop{plim}_{n\to\infty}\hat{\beta}&amp;=&amp;\mathop{plim}_{n\to\infty}\left(\beta+(X^{T}X)^{-1}X^{T}u\right)\\\nonumber
+&amp;=&amp;\beta+\mathop{plim}_{n\to\infty}(\frac{1}{n}X^{T}X)^{-1}+\mathop{plim}_{n\to\infty}\frac{1}{n}X^{T}u\\\nonumber
+&amp;=&amp;\beta+S_{X^{T}X}^{-1}\mathop{plim}_{n\to\infty}\frac{1}{n}\sum_{t=1}^{n} X_{t}^{T}u_{t} \\\nonumber
+&amp;=&amp;\beta+S_{X^{T}X}^{-1} E(X_{t}^{T}u_{t}) \\\nonumber
+&amp;=&amp;\beta+S_{X^{T}X}^{-1} E(E(X_{t}^{T}u_{t})|X_{t}) \\\nonumber
+&amp;=&amp;\beta+S_{X^{T}X}^{-1} E(X_{t}^{T}E(u_{t})|X_{t}) \\
+\label{eqo10}
+&amp;=&amp;\beta
+\end{eqnarray}\]
+
+<h1 id="the-covariance-matrix-of-the-ols-estimator">The Covariance Matrix of the OLS Estimator</h1>
+<p>The full covariance matrix \(Var(b)\) can be expressed by</p>
+
+\[\begin{eqnarray}
+\label{eqo11}
+Var(b)&amp;=&amp;E\left(\left(b-E(b)\right)\left(b-E(b)\right)^{T}\right)
+\end{eqnarray}\]
+
+<p>\(Var(b)\) is symmetric and positive semidefinite.</p>
+
+<h2 id="the-ols-covariance-matrix">The OLS Covariance Matrix</h2>
+<p>If the error terms are IID, and have the same variance \(\sigma^{2}\), and the covariance of any pair of them is zero.</p>
+
+\[\begin{eqnarray}
+\label{eqo12}
+Var(u)&amp;=&amp;E(uu^{T})=\sigma^{2}I
+\end{eqnarray}\]
+
+<p>If we assume that \(X\) is exogenous,</p>
+
+\[\begin{eqnarray*}
+E((\hat{\beta}-\beta)(\hat{\beta}-\beta)^{T}|X)&amp;=&amp;E((X^{T}X)^{-1}X^{T}u)(X^{T}X)^{-1}X^{T}u)^{T}|X)\\
+&amp;=&amp;E((X^{T}X)^{-1}X^{T}uu^{T}X(X^{T}X)^{-1}|X)\\
+&amp;=&amp;(X^{T}X)^{-1}X^{T}X(X^{T}X)^{-1}\sigma^{2}I\\
+&amp;=&amp;\sigma^{2}(X^{T}X)^{-1}
+\end{eqnarray*}\]
+
+<p>Linear Functions of Parameter Estimates</p>
+
+\[\begin{eqnarray*}
+Var(\omega^{T}\hat{\beta})&amp;=&amp;\omega^{T}Var(\hat{\beta})\omega\\
+&amp;=&amp;\omega^{T}\left(\sigma^{2}(X^{T}X)^{-1}\right)\omega\\
+\end{eqnarray*}\]
+
+<p>Estimating the Variance of the Error Terms</p>
+
+\[\begin{eqnarray}
+\label{eqo13}
+s^{2}&amp;=&amp;\frac{1}{n-k}\sum_{t=1}^{n}\hat{u}_{t}^{2}
+\end{eqnarray}\]
+
+<p>We obtain an unbiased estimate of \(Var(\hat{\beta})\)</p>
+
+\[\begin{eqnarray}
+\label{eqo14}
+Var(\hat{\beta})&amp;=&amp;s^{2}(X^{T}X)^{-1}=\left(\frac{1}{n-k}\sum_{t=1}^{n}\hat{u}_{t}^{2}\right)(X^{T}X)^{-1}
+\end{eqnarray}\]
+
+<h1 id="efficiency-of-the-ols-estimator">Efficiency of the OLS Estimator</h1>
+<p><strong>Gauss-Markov Theorem</strong>: If it is assumed that \(E(u|X)=0\) and \(E(uu^{T})=\sigma^{2}I\) in the linear regression model, then the OLS estimator \(\hat{\beta}\) is more efficient than any other linear unbiased estimator \(\tilde{\beta}\), in sense that \(Var(\tilde{\beta})-Var(\hat{\beta})\) is a positive semidefinite matrix.</p>
+
+<h1 id="goodness-of-fit">Goodness of Fit</h1>
+<p><strong>Adjusted \(R^{2}\)</strong></p>
+
+\[\begin{eqnarray}
+\label{eqo15}
+\bar{R}_{2}&amp;=&amp;1-\frac{\frac{1}{n-k}\sum_{t=1}^{n}\hat{u}_{t}^{2}}{\frac{1}{n-1}\sum_{t=1}^{n}(y_{t}-\bar{y})^{2}}=1-\frac{\frac{1}{n-k}y^{T}M_{X}y}{\frac{1}{n-1}y^{T}M_{\iota}y}
+\end{eqnarray}\]]]></content><author><name></name></author><category term="note" /><category term="econometics" /><summary type="html"><![CDATA[The third chapter of Econometric Theory and Methods]]></summary></entry><entry><title type="html">Davidson and MacKinnon Chapter 4—Hypothesis Testing in Linear Regression Model</title><link href="https://lingboshen.github.io/blog/2022/DMCh4/" rel="alternate" type="text/html" title="Davidson and MacKinnon Chapter 4—Hypothesis Testing in Linear Regression Model" /><published>2022-10-23T15:12:00+00:00</published><updated>2022-10-23T15:12:00+00:00</updated><id>https://lingboshen.github.io/blog/2022/DMCh4</id><content type="html" xml:base="https://lingboshen.github.io/blog/2022/DMCh4/"><![CDATA[<h1 id="some-common-distributions-and-relationships">Some Common Distributions and Relationships</h1>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+
+  <picture>
+    <source media="(max-width: 480px)" srcset="/assets/img/DMCh4-distribution-relation-480.webp" />
+    <source media="(max-width: 800px)" srcset="/assets/img/DMCh4-distribution-relation-800.webp" />
+    <source media="(max-width: 1400px)" srcset="/assets/img/DMCh4-distribution-relation-1400.webp" />
+    <!-- Fallback to the original file -->
+    <img class="img-fluid rounded z-depth-1" src="/assets/img/DMCh4-distribution-relation.jpg" data-zoomable="" />
+  </picture>
+
+</figure>
+
+    </div>
+</div>
+<div class="caption">
+    <b>Relationships between common distributions</b>
+</div>
+
+<h2 id="the-normal-distrbution">The Normal Distrbution</h2>
+
+\[\begin{eqnarray*}
+Z&amp;\sim&amp;N(0,1)\\
+X=\mu+\sigma Z&amp;\sim&amp;N(\mu, \sigma)\\
+f(x)&amp;=&amp;\frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{(x-\mu)^{2}}{2\sigma^{2}}}
+\end{eqnarray*}\]
+
+<p>Any linear combination of independent normally distributed random
+variables is normally distributed.</p>
+
+<p>Consider Multivariable Normal Distribution</p>
+
+\[\begin{eqnarray*}
+X&amp;\sim&amp;N(\mu, \Omega)
+\end{eqnarray*}\]
+
+<p>If \(a\) is an \(m-\)vector of fixed coefficients, then
+\(a^{T}X\), which is a linear combination of normal
+distribution, follows</p>
+
+\[\begin{eqnarray*}
+a^{T}X&amp;\sim&amp;N(a^{T}\mu, a^{T}\Omega a)
+\end{eqnarray*}\]
+
+<p>If \(X\) is any multivariate normal vector with zero covariances, the
+components of \(X\) are mutually independent.</p>
+
+<p>This is a very special property of the multivariate normal distribution.
+Usually zero covariance doesn’t mean independent.</p>
+
+<h2 id="the-chi-squared-distrbution">The Chi-Squared Distrbution</h2>
+
+<p>Suppose the random vector \(Z\) is such that its components
+\(z_{1}, z_{2},\cdots, z_{m}\) are mutually independent standard normal
+distribution random variables, i.e. \(Z\sim N(0, I)\). Then
+the random variable \(y\)</p>
+
+\[\begin{eqnarray}
+\label{eqd1}
+y&amp;\equiv&amp;||Z||^{2}=Z^{T}Z=\sum_{i=1}^{m}z_{i}^{2}
+\end{eqnarray}\]
+
+<p>follows the <strong>chi-squared distirbution</strong> with \(m\) <strong>degrees of
+freedom</strong>. We write is as</p>
+
+\[\begin{eqnarray*}
+y&amp;\sim&amp;\chi^{2}(m)
+\end{eqnarray*}\]
+
+<p>The mean of chi-squared distribution is \(m\), and its variance is \(2m\).</p>
+
+<p>If \(y_{1}\sim \chi^{2}(m_{1})\), \(y_{2}\sim \chi^{2}(m_{2})\), and \(y_{1}\)
+and \(y_{2}\) are independent, then</p>
+
+\[\begin{eqnarray*}
+y&amp;=&amp;y_{1}+y_{2}=\sum_{i=1}^{m_{1}+m_{2}}z_{i}^{2}\sim \chi^{2}(m_{1}+m_{2})
+\end{eqnarray*}\]
+
+<p>::: proposition</p>
+<ol>
+  <li>If the \(m-\)vector \(X\) is distributed as
+\(N(0,\Omega)\), then the quadratic form</li>
+</ol>
+
+\[\begin{eqnarray}
+    	\label{eqd2}
+    	X^{T}\Omega^{-1}X&amp;\sim&amp;\chi^{2}(m)
+    \end{eqnarray}\]
+
+<ol>
+  <li>If \(P\) is a projection matrix with rank \(r\) and \(Z\) is an
+\(n-\)vector that is distributed as \(N(0,I)\), then the
+quadratic form</li>
+</ol>
+
+\[\begin{eqnarray}
+    	\label{eqd3}
+    	Z^{T}PZ&amp;\sim&amp;\chi^{2}(r)
+    \end{eqnarray}\]
+
+<p>:::</p>
+
+<p>::: proof
+<em>Proof.</em></p>
+
+<ol>
+  <li>
+    <p>Let \(Z=A^{-1}X\), where \(AA^{T}=\Omega\)</p>
+
+    <p>Since the vector \(X\) is multivariate normal with mean vector
+\(0\), so is the vector \(A^{-1}X\). The covariance of
+\(A^{-1}X\) is</p>
+  </li>
+</ol>
+
+\[\begin{eqnarray*}
+    E\left(A^{-1}XX^{T}(A^{T})^{-1}\right)&amp;=&amp;A^{-1}E\left(XX^{T}\right)(A^{T})^{-1}\\
+    &amp;=&amp;A^{-1}\Omega(A^{T})^{-1}=A^{-1}AA^{T}(A^{T})^{-1}\\
+    &amp;=&amp;I_{m}
+    \end{eqnarray*}\]
+
+<p>So \(Z=A^{-1}X\sim N(0, I)\)
+    Considering the quadratic form \(X^{T}\Omega^{-1}X\),
+    we have</p>
+
+\[\begin{eqnarray*}
+    X^{T}\Omega^{-1}X&amp;=&amp;X^{T}(AA^{T})^{-1}X\\
+    &amp;=&amp;X^{T}(A^{T})^{-1}A^{-1}X\\
+    &amp;=&amp;Z^{T}Z\sim \chi^{2}(m)
+    \end{eqnarray*}\]
+
+<ol>
+  <li>Suppose \(P\) projects on to the span of the columns of an
+\(n\times r\) matrix \(Z\). This allows us to write</li>
+</ol>
+
+\[\begin{eqnarray*}
+    Z^{T}PZ&amp;=&amp;Z^{T}Z(Z^{T}Z)^{-1}Z^{T}Z
+    \end{eqnarray*}\]
+
+<p>Let \(X=Z^{T}Z\), and
+    \(X\sim N(0,Z^{T}Z)\). Therefore,</p>
+
+\[\begin{eqnarray*}
+    Z^{T}PZ&amp;=&amp;X^{T}(Z^{T}Z)^{-1}X
+    \end{eqnarray*}\]
+
+<p>where \(Z^{T}Z\) is the variance of
+    \(X\). Use the first part of the theorem, we prove that
+    \(Z^{T}PZ\) is distributed as \(\chi^{2}(r)\).</p>
+
+<p>◻
+:::</p>
+
+<h2 id="the-students-t-distribution">The Student’s t Distribution</h2>
+
+<p>If \(z\sim N(0,1)\) and \(y\sim \chi^{2}(m)\), and \(z\) and \(y\) are
+independent, then the random variable</p>
+
+\[\begin{eqnarray}
+\label{eqd4}
+z&amp;\equiv&amp;\frac{z}{(y/m)^{1/2}}
+\end{eqnarray}\]
+
+<p>is said to follow the <strong>Student’s t disribution</strong> with
+\(m\) degrees of freedom. We write is as</p>
+
+\[\begin{eqnarray*}
+t&amp;\sim&amp;t(m)
+\end{eqnarray*}\]
+
+<h2 id="the-f-distribution">The F Distribution</h2>
+
+<p>If \(y_{1}\sim \chi^{2}(m_{1})\) and \(y_{2}\sim \chi^{2}(m_{2})\), and
+\(y_{1}\) and \(y_{2}\) are independent, then the random variable</p>
+
+\[\begin{eqnarray}
+\label{eqd5}
+F&amp;\equiv&amp;\frac{y_{1}/m_{1}}{y_{2}/m_{2}}
+\end{eqnarray}\]
+
+<p>is said to follow the <strong>F distribution</strong> with \(m_{1}\)
+and \(m_{2}\) degrees of freedom. We write it as</p>
+
+\[\begin{eqnarray}
+F&amp;\sim&amp;F(m_{1}, m_{2})
+\end{eqnarray}\]
+
+<h1 id="tests-of-a-single-restriction">Tests of a Single Restriction</h1>
+
+<p>We want to test \(\beta_{2}=0\)</p>
+
+\[\begin{eqnarray}
+\label{eq6}
+y&amp;=&amp;X_{1}\beta_{1}+\beta_{2}x_{2}+u\\
+\nonumber
+M_{1}y&amp;=&amp;\beta_{2}M_{1}x_{2}+M_{1}u
+\end{eqnarray}\]
+
+<p>We find that</p>
+
+\[\begin{eqnarray*}
+\hat{\beta}_{2}&amp;=&amp;\frac{X_{2}^{T}M_{1}y}{X_{2}^{T}M_{1}X_{2}}\\
+Var(\hat{\beta}_{2})&amp;=&amp;\sigma^{2}\left(X_{2}^{T}M_{1}X_{2}\right)^{-1}
+\end{eqnarray*}\]
+
+<p>For the null hypothesis that \(\beta_{2}=0\), this yields a test statistic</p>
+
+\[\begin{eqnarray}
+\label{eq7}
+z_{\beta_{2}}&amp;=&amp;\frac{X_{2}^{T}M_{1}y}{\sigma\left(X_{2}^{T}M_{1}X_{2}\right)^{1/2}}\\
+\label{eq8}
+&amp;=&amp;\frac{X_{2}^{T}M_{1}u}{\sigma\left(X_{2}^{T}M_{1}X_{2}\right)^{1/2}}\sim N(0,1)
+\end{eqnarray}\]
+
+<p>However, we do not know \(\sigma\). We need to replace \(\sigma\) by \(s\)</p>
+
+\[\begin{eqnarray*}
+s^{2}&amp;=&amp;\frac{u^{T}u}{n-k}=\frac{(M_{X}y)^{T}M_{X}y}{n-k}\\
+&amp;=&amp;\frac{y^{T}M_{X}y}{n-k}
+\end{eqnarray*}\]
+
+<p>and we obtain the test statistic</p>
+
+\[\begin{eqnarray}
+\nonumber
+t_{\beta_{2}}&amp;=&amp;\frac{X_{2}^{T}M_{1}y}{s\left(X_{2}^{T}M_{1}X_{2}\right)^{1/2}}\\
+\nonumber
+&amp;=&amp;\frac{X_{2}^{T}M_{1}y}{\frac{s}{\sigma}\sigma\left(X_{2}^{T}M_{1}X_{2}\right)^{1/2}}\\
+\nonumber
+&amp;=&amp;\frac{z_{\beta_{2}}}{s/\sigma}\\
+\label{eq9}
+&amp;=&amp;\frac{z_{\beta_{2}}}{\sqrt{\frac{y^{T}M_{X}y}{\sigma^{2}}/n-k}}
+\end{eqnarray}\]
+
+<p>Then we need to show that
+\(\frac{y^{T}M_{X}y}{\sigma^{2}}\sim \chi^{2}(n-k)\). If so,
+(\ref{eq9}) is \(t\)
+distribution with degree of freedom \((n-k)\).</p>
+
+\[\begin{eqnarray}
+\label{eq10}
+\frac{y^{T}M_{X}y}{\sigma^{2}}&amp;=&amp;\frac{u^{T}M_{X}u}{\sigma^{2}}=\varepsilon^{T}M_{X}\varepsilon
+\end{eqnarray}\]
+
+<p>where
+\(\varepsilon\equiv u/\sigma\sim N(0, 1)\). The second
+part of Theorem 1 tells us that rightmost expression in the
+(\ref{eq10}) is
+distributed as \(\chi^{2}(n-k)\)</p>
+
+<h1 id="tests-of-several-restrictions">Tests of Several Restrictions</h1>
+
+<p>Suppose that there are \(r\) restrictions, with \(r\leq k\).</p>
+
+\[\begin{eqnarray}
+\label{eq11}
+H_{0}&amp;:&amp; y=X_{1}\beta_{1}+u\\
+\label{eq12}
+H_{1}&amp;:&amp; y=X_{1}\beta_{1}+X_{2}\beta_{2}+u
+\end{eqnarray}\]
+
+<p>where \(X_{1}\) is an \(n\times k_{1}\) matrix,
+\(X_{2}\) is an \(n\times k_{2}\) matrix, \(\beta_{1}\) is a
+\(k_{1}\)-vector, \(\beta_{2}\) is a \(k_{2}\)-vector, \(k=k_{1}+k_{2}\),
+and the number of restrictions \(r=k_{2}\).</p>
+
+<p>The test statistic is</p>
+
+\[\begin{eqnarray}
+\label{eq13}
+F_{\beta_{2}}&amp;\equiv&amp;\frac{(RSSR-USSR)/r}{USSR/(n-k)}
+\end{eqnarray}\]
+
+<p>Under the null hypothesis, this test statistic follow
+the \(F\) distribution with \(r\) and \(n-k\) degrees of freedom.</p>
+
+<p>It is easy to find that</p>
+
+\[\begin{eqnarray*}
+RSSR&amp;=&amp;(M_{1}y)^{T}M_{1}y=y^{T}M_{1}y\\
+USSR&amp;=&amp;(M_{X}y)^{T}M_{X}y=y^{T}M_{X}y
+\end{eqnarray*}\]
+
+<p>By FWL theorem, the \(USSR\) is the SSR from the FWL regression</p>
+
+\[\begin{eqnarray}
+\label{eq14}
+M_{1}y&amp;=&amp;M_{1}X_{2}\beta_{2}+M_{1}u
+\end{eqnarray}\]
+
+<p>and the \(USSR\) becomes</p>
+
+\[\begin{eqnarray}
+\nonumber
+USSR&amp;=&amp;TSS-ESS\\\nonumber
+&amp;=&amp;(M_{1}y)^{T}M_{1}y\\\nonumber
+&amp;-&amp;[M_{1}X_{2}((M_{1}X_{2})^{T}M_{1}X_{2})^{-1}(M_{1}X_{2})^{T}M_{1}y]^{T}M_{1}X_{2}((M_{1}X_{2})^{T}M_{1}X_{2})^{-1}(M_{1}X_{2})^{T}M_{1}y\\\nonumber
+&amp;=&amp;y^{T}M_{1}y-[M_{1}X_{2}(X_{2}^{T}M_{1}X_{2})^{-1}X_{2}^{T}M_{1}y]^{T}M_{1}X_{2}(X_{2}^{T}M_{1}X_{2})^{-1}X_{2}^{T}M_{1}y\\\nonumber
+&amp;=&amp;y^{T}M_{1}y-y^{T}M_{1}^{T}X_{2}(X_{2}^{T}M_{1}X_{2})^{-1}X_{2}^{T}M_{1}^{T}M_{1}X_{2}(X_{2}^{T}M_{1}X_{2})^{-1}X_{2}^{T}M_{1}y\\\nonumber
+&amp;=&amp;y^{T}M_{1}y-y^{T}M_{1}X_{2}(X_{2}^{T}M_{1}X_{2})^{-1}X_{2}^{T}M_{1}X_{2}(X_{2}^{T}M_{1}X_{2})^{-1}X_{2}^{T}M_{1}y\\
+\label{eq15}
+&amp;=&amp;y^{T}M_{1}y-y^{T}M_{1}X_{2}(X_{2}^{T}M_{1}X_{2})^{-1}X_{2}^{T}M_{1}y
+\end{eqnarray}\]
+
+<p>Therefore,</p>
+
+\[\begin{eqnarray*}
+RSSR-USSR&amp;=&amp;y^{T}M_{1}X_{2}(X_{2}^{T}M_{1}X_{2})^{-1}X_{2}^{T}M_{1}y
+\end{eqnarray*}\]
+
+<p>Now the \(F\) statistics (\ref{eq14}) can be written as</p>
+
+\[\begin{eqnarray}
+\label{eq16}
+F_{\beta_{2}}&amp;=&amp;\frac{y^{T}M_{1}X_{2}(X_{2}^{T}M_{1}X_{2})^{-1}X_{2}^{T}M_{1}y/r}{y^{T}M_{X}y/(n-k)}
+\end{eqnarray}\]
+
+<p>Under the null hypothesis \(y=X_{1}\beta_{1}+u\)</p>
+
+\[\begin{eqnarray*}
+M_{X}y&amp;=&amp;M_{X}u\\
+M_{1}y&amp;=&amp;M_{1}u\\
+\end{eqnarray*}\]
+
+<p>Thus, under this hypothesis, the \(F\) statistics
+(\ref{eq16}) becomes to</p>
+
+\[\begin{eqnarray}
+\nonumber
+F_{\beta_{2}}&amp;=&amp;\frac{u^{T}M_{1}X_{2}(X_{2}^{T}M_{1}X_{2})^{-1}X_{2}^{T}M_{1}u/r}{u^{T}M_{X}u/(n-k)}\\
+\label{eq17}
+&amp;=&amp;\frac{\varepsilon^{T}M_{1}X_{2}(X_{2}^{T}M_{1}X_{2})^{-1}X_{2}^{T}M_{1}\varepsilon/r}{\varepsilon^{T}M_{X}\varepsilon/(n-k)}
+\end{eqnarray}\]
+
+<p>where \(\varepsilon=u/\sigma\)</p>
+
+<p>The denominator of (\ref{eq17}) is distributed as \(\chi^{2}(n-k)\). The quadratic form
+of numerator can be written as
+\(\varepsilon^{T}P_{M_{1}X_{2}}\varepsilon\), it
+is distributed as \(\chi^{2}(r)\).</p>
+
+<h2 id="chow-test">Chow Test</h2>
+
+<p>It is natural to divide a sample into two subsamples, e.g. larger/small
+firms, men/women. We want to test whether a linear regression model has
+the same coefficients for both the subsamples. Chow test can solve this
+problem.</p>
+
+<p>Suppose there are two subsamples, of lengths \(n_{1}\) and \(n_{2}\), with
+\(n=n_{1}+n_{2}\). Both \(n_{1}\) and \(n_{2}\) are greater than \(k\), the
+number of regressors.</p>
+
+\[\begin{eqnarray*}
+y=\left[\begin{array}{c}
+y_{1}\\
+y_{2}
+\end{array}\right]
+&amp;\mbox{and}&amp;
+X=\left[\begin{array}{c}
+X_{1}\\
+X_{2}
+\end{array}\right]
+\end{eqnarray*}\]
+
+<p>Even we need different parameter vectors \(\beta_{1}\) and
+\(\beta_{2}\) for two subsamples, we can nonetheless put the subsamples
+together into a regression model</p>
+
+\[\begin{eqnarray}
+\label{eq25}
+\left[\begin{array}{c}
+y_{1}\\
+y_{2}
+\end{array}\right]=
+\left[\begin{array}{c}
+X_{1}\\
+X_{2}
+\end{array}\right]\beta_{1}+
+\left[\begin{array}{c}
+0\\
+X_{2}
+\end{array}\right]\gamma+u
+&amp;,&amp;u\sim N(0,\sigma^{2}I)
+\end{eqnarray}\]
+
+<p>where \(\beta_{1}+\gamma=\beta_{2}\).</p>
+
+<p>We could rewrite (\ref{eq25})</p>
+
+\[\begin{eqnarray}
+\label{eq26}
+y=X\beta_{1}+Z\gamma+u&amp;,&amp;u\sim N(0,\sigma^{2}I)
+\end{eqnarray}\]
+
+<p>The null hypothesis is \(H_{0}:\gamma=0\) and it
+has been expressed as a set of \(k\) zero restrictions. We can use classic
+\(F\) test. However, if \(SSR_{1}\) and \(SSR_{2}\) denote the sums of squared
+residuals from two regressions, and \(RSSR\) denotes the sum of squared
+residuals from regressing \(y\) on \(X\), the \(F\) statistic becomes</p>
+
+\[\begin{eqnarray}
+\label{eq27}
+F_{\gamma}&amp;=&amp;\frac{(RSSR-SSR_{1}-SSR_{2})/k}{(SSR_{1}+SSR_{2})/(n-2k)}
+\end{eqnarray}\]
+
+<h1 id="large-sample-tests-in-linear-regression-models">Large-Sample Tests in Linear Regression Models</h1>
+
+<p>Asymptotic theory is concerned with the distributions of estimators and
+test statistics as the sample size \(n\) tends to infinity.</p>
+
+<h2 id="laws-of-large-number">Laws of Large Number</h2>
+
+<p>A law of large numbers may apply to any quantity which can be written as
+an average of \(n\) random variable, that is, \(1/n\) times their sum.</p>
+
+\[\begin{eqnarray*}
+\bar{x}&amp;\equiv&amp;\frac{1}{n}\sum_{t=1}^{n}x_{t}
+\end{eqnarray*}\]
+
+<p>where \(x_{t}\) are <strong>independent</strong> random variables, each
+with <strong>bounded finite variance</strong> \(\sigma_{t}^{2}\) and <strong>with a common
+mean</strong> \(\mu\). As \(n\to \infty\), \(\bar{x}\to\mu\).</p>
+
+<p>There are many different LLNs, some of which do not require that the
+individual random variables have a common mean or be independent,
+although the amount of dependence must be limited.</p>
+
+<p>If we can apply a LLN to any random average, we can treat it as a
+nonrandom quantity for the purpose of asymptotic analysis.</p>
+
+<h2 id="central-limit-theorems">Central Limit Theorems</h2>
+
+<p>In many circumstance, \(1/\sqrt{n}\) times the sum of \(n\) centered random
+variables will approximately follow a normal distribution.</p>
+
+<p>Suppose that the random variables \(x_{t}\), \(t=1,\dots,n\) are
+independently and identically distributed with mean \(\mu\) and variance
+\(\sigma^{2}\). Then according to the Lindebery-Lévy central limit theorem</p>
+
+\[\begin{eqnarray*}
+z&amp;\equiv&amp;\frac{1}{\sqrt{n}}\sum_{t=1}^{n}\frac{x_{t}-\mu}{\sigma}
+\end{eqnarray*}\]
+
+<p>is <strong>asymptotically distributed</strong> as \(N(0,1)\). This
+means that as \(n\to\infty\), the random variable \(z\) tends to a random
+variable which follows the \(N(0,1)\).</p>
+
+<p>For a sequence of random variables, \(x_{t}\), \(t=1,\dots,n\) with
+\(E(x_{t})=0\)</p>
+
+\[\begin{eqnarray*}
+\mathop{plim}_{n\to\infty}n^{-1/2}\sum_{t=1}^{n}x_{t}=x_{0}\sim N\left(0,\lim_{n\to\infty} \frac{1}{n}\sum_{t=1}^{n}Var(x_{t})\right)
+\end{eqnarray*}\]
+
+<p>It can also be applied to the multivariate version of CLTs.</p>
+
+<h2 id="asymptotic-tests">Asymptotic Tests</h2>
+
+<p>Suppose that the DGP is</p>
+
+\[\begin{eqnarray}
+\label{eq18}
+y&amp;=&amp;X\beta_{0}+u\\
+\nonumber
+u&amp;\sim&amp;IID(0, \sigma^{2}_{0}I)
+\end{eqnarray}\]
+
+<p>We make another assumptions</p>
+
+\[\begin{eqnarray}
+\label{eq19}
+E(u_{t}|X_{t})&amp;=&amp;0\\
+\nonumber
+E(u_{t}^{2}|X_{t})&amp;=&amp;\sigma^{2}_{0}
+\end{eqnarray}\]
+
+<p>From the point of view of the error terms, it says that
+they are <strong>innovations</strong>. From the point of view of the explanatory
+variables \(X_{t}\), they are <strong>predetermined</strong> with respect to the
+errors terms.</p>
+
+<p>To be able to use asymptotic results, we assume that the DGP for the
+explanatory variables is such that</p>
+
+\[\begin{eqnarray}
+\label{eq20}
+\mathop{plim}_{n\to\infty}\frac{1}{n}X^{T}X&amp;=&amp;S_{X^{T}X}
+\end{eqnarray}\]
+
+<p>where \(S_{X^{T}X}\) is a finite,
+deterministic, positive definite matrix.</p>
+
+<p>We rewrite \(t_{\beta_{2}}\) as</p>
+
+\[\begin{eqnarray}
+\label{eq21}
+t_{\beta_{2}}&amp;=&amp;\left(\frac{y^{T}M_{X}y}{n-k}\right)^{-1/2}\frac{n^{-1/2}X_{2}^{T}M_{1}y}{\left(n^{-1}X_{2}^{T}M_{1}X_{2}\right)^{1/2}}
+\end{eqnarray}\]
+
+<p>As \(n\to\infty\), \(s^{2}\equiv\frac{y^{T}M_{X}y}{n-k}\)
+tends to \(\sigma_{0}^{2}\). So the first factor in
+(\ref{eq21}) tends to
+\(1/\sigma_{0}\) as \(n\to\infty\).</p>
+
+<p>When DGP with \(\beta_{2}=0\), we have that
+\(M_{1}y=M_{1}u\), and so
+(\ref{eq21}) is
+asymptotically equivalent to</p>
+
+\[\begin{eqnarray}
+\label{eq22}
+t_{\beta_{2}}&amp;=&amp;\frac{n^{-1/2}X_{2}^{T}M_{1}u}{\sigma_{0}\left(n^{-1}X_{2}^{T}M_{1}X_{2}\right)^{1/2}}
+\end{eqnarray}\]
+
+<p>If we reinstate the assumption that the regressors are exogenous, the
+conditional variance of the numerator of
+(\ref{eq22}) is</p>
+
+\[\begin{eqnarray*}
+E(X_{2}^{T}M_{1}uu^{T}M_{1}X_{2}|X)&amp;=&amp;\sigma_{0}^{2}X_{2}^{T}M_{1}X_{2}
+\end{eqnarray*}\]
+
+<p>Thus (\ref{eq22}) has mean
+\(0\) and variance \(1\), conditional on \(X\). They are also the
+unconditional mean and variance.</p>
+
+<p>Under the null hypothesis, with exogenous regressors,</p>
+
+\[\begin{eqnarray}
+\label{eq23}
+t_{\beta_{2}}&amp;\sim&amp;N(0,1)
+\end{eqnarray}\]
+
+<h2 id="the-t-test-with-predetermined-regressors">The \(t\) Test with Predetermined Regressors</h2>
+
+<p>To the \(k-\)vector</p>
+
+\[\begin{eqnarray*}
+v&amp;\equiv&amp;n^{-1/2}X^{T}u=n^{-1/2}\sum_{t=1}^{n}u_{t}X^{T}
+\end{eqnarray*}\]
+
+<p>We assume \(E(u_{t}|X_{t})=0\). This implies that
+\(E(u_{t}X_{t}^{T})=0\), as required for the CLT, which then tells us
+that</p>
+
+\[\begin{eqnarray*}
+v&amp;\sim&amp;N\left(0, \lim_{n\to\infty}\frac{1}{n}\sum_{t=1}^{n}Var(u_{t}X_{t}^{T})\right)=N\left(0, \lim_{n\to\infty}\frac{1}{n}\sum_{t=1}^{n}E(u_{t}^{2}X_{t}^{T}X_{t})\right)
+\end{eqnarray*}\]
+
+\[\begin{eqnarray*}
+\lim_{n\to\infty}\frac{1}{n}\sum_{t=1}^{n}E(u_{t}^{2}X_{t}^{T}X_{t})&amp;=&amp;\lim_{n\to\infty}\sigma_{0}^{2}\frac{1}{n}\sum_{t=1}^{n}E(X_{t}^{T}X_{t})\\
+&amp;=&amp;\sigma_{0}^{2}\mathop{plim}_{n\to\infty}\frac{1}{n}\sum_{t=1}^{n}X_{t}^{T}X_{t}\\
+&amp;=&amp;\sigma_{0}^{2}\mathop{plim}_{n\to\infty}\frac{1}{n}X^{T}X\\
+&amp;=&amp;\sigma_{0}^{2}S_{X^{T}X}
+\end{eqnarray*}\]
+
+<h2 id="asymptotic-f-tests">Asymptotic <em>F</em> Tests</h2>
+
+<p>\(F\) statistics (\ref{eq16}) under the null hypothesis that \(\beta_{2}=0\) can
+be rewritten as</p>
+
+\[\begin{eqnarray}
+\nonumber
+F_{\beta_{2}}&amp;=&amp;\frac{y^{T}M_{1}X_{2}(X_{2}^{T}M_{1}X_{2})^{-1}X_{2}^{T}M_{1}y/r}{y^{T}M_{X}y/(n-k)}\\
+\nonumber
+&amp;=&amp;\frac{\varepsilon^{T}M_{1}X_{2}(X_{2}^{T}M_{1}X_{2})^{-1}X_{2}^{T}M_{1}\varepsilon/r}{\varepsilon^{T}M_{X}\varepsilon/(n-k)}\\
+\label{eq24}
+&amp;=&amp;\frac{n^{-1/2}\varepsilon^{T}M_{1}X_{2}(n^{-1}X_{2}^{T}M_{1}X_{2})^{-1}n^{-1/2}X_{2}^{T}M_{1}\varepsilon/r}{\varepsilon^{T}M_{X}\varepsilon/(n-k)}
+\end{eqnarray}\]
+
+<p>where \(\varepsilon=u/\sigma_{0}\).</p>]]></content><author><name></name></author><category term="note" /><category term="econometics" /><summary type="html"><![CDATA[The fourth chapter of Econometric Theory and Methods]]></summary></entry><entry><title type="html">Davidson and MacKinnon Chapter 6—Confidence Intervals</title><link href="https://lingboshen.github.io/blog/2022/DMCh6/" rel="alternate" type="text/html" title="Davidson and MacKinnon Chapter 6—Confidence Intervals" /><published>2022-10-23T15:12:00+00:00</published><updated>2022-10-23T15:12:00+00:00</updated><id>https://lingboshen.github.io/blog/2022/DMCh6</id><content type="html" xml:base="https://lingboshen.github.io/blog/2022/DMCh6/"><![CDATA[<h1 id="introduction">Introduction</h1>
+<p>Once we are confident that a model is correctly specified and incorporates whatever restrictions are appropriate, we often want to make inferences about the values of some of the parameters that appear in the model. It is usually more convenient to construct <strong>confidence intervals</strong> for the individual parameters of specific interest.</p>
+
+<p>By definition, a confidence interval is an interval of the real line that contains all values \(\theta_{0}\) for which the hypothesis that \(\theta = \theta_{0}\) is not rejected by the appropriate test in the family. For level \(\alpha\), a confidence interval so obtained is said to be at \(1-\alpha\) confidence interval, or to be at <strong>confidence level</strong> \(1-\alpha\).</p>
+
+<p>Unlike the parameters we are trying to make inferences about, confidence intervals are random. Every different sample that we draw from the same DGP will yield a different confidence interval.</p>
+
+<p>The probability that the random interval will include, or cover, the true value of the parameter is called the <strong>coverage probability</strong>, or just the <strong>coverage</strong>, of the interval.</p>
+
+<h1 id="exact-and-asymptotic-confidence-intervals">Exact and Asymptotic Confidence Intervals</h1>
+<p>A confidence interval for some scalar parameter \(\theta\) consists of all values \(\theta_{0}\) for which the hypothesis \(\theta = \theta_{0}\) cannot be rejected at some specified level \(\alpha\). Thus, as we will see in a moment, we can construct a confidence interval by <em>inverting</em> a test statistic.</p>
+
+<p>Let us denote the test statistic for the hypothesis that \(\theta = \theta_{0}\) by the random variable \(\tau(y,\theta_{0})\). Here \(y\) denotes the sample used to compute the particular realization of the statistic.</p>
+
+<p>If we write the critical value as \(c_{\alpha}\), then for any \(\theta_{0}\), we have by the definition of \(c_{\alpha}\) that</p>
+
+\[\begin{eqnarray}
+\label{eq5.1}
+\Pr_{\theta_{0}}(\tau(y,\theta_{0})\leq c_{\alpha})&amp;=&amp;1-\alpha
+\end{eqnarray}\]
+
+<p>For \(\theta_{0}\) to belong to the confidence interval obtained by inverting the family of test statistics \(\tau(y,\theta_{0})\), it is necessary and sufficient that</p>
+
+\[\begin{eqnarray}
+\label{eq5.2}
+\tau(y,\theta_{0})&amp;\leq&amp; c_{\alpha}
+\end{eqnarray}\]
+
+<p>Thus the limits of the confidence interval can be found by solving the equation for \(\theta\)</p>
+
+\[\begin{eqnarray}
+\label{eq5.3}
+\tau(y,\theta_{0})&amp;=&amp; c_{\alpha}
+\end{eqnarray}\]
+
+<p>This equation normally has two solutions: upper limit \(\theta_{u}\) and lower limit \(\theta_{l}\).</p>
+
+<p>If \(c_{\alpha}\) is an exact critical value for the test statistic \(\tau(y,\theta_{0})\) at level \(\alpha\), then the confidence interval \([\theta_{l}, \theta_{u}]\) constructed in this way will have coverage \(1-\alpha\), as desired.</p>
+
+<h2 id="quantiles">Quantiles</h2>
+<p>The \(\alpha\) <strong>quantile</strong> of \(F\), \(q_{\alpha}\), satisfies the equation</p>
+
+\[\begin{eqnarray*}
+F(q_{\alpha})&amp;=&amp;\alpha
+\end{eqnarray*}\]
+
+<p>The 0.5 quantile of a distribution is often called the <strong>median</strong>.</p>
+
+<h2 id="asymptotic-confidence-intervals">Asymptotic Confidence Intervals</h2>
+<p>Let us suppose that</p>
+
+\[\begin{eqnarray}
+\label{eq5.4}
+\tau(y,\theta_{0})&amp;=&amp;\left(\frac{\hat{\theta}-\theta_{0}}{s_{\theta}}\right)^{2}
+\end{eqnarray}\]
+
+<p>Thus \(\tau(y,\theta_{0})\) is the square of the \(t\) statistic for the null hypothesis that \(\theta=\theta_{0}\). If \(\hat{\theta}\) were an OLS estimate of a regression coefficient, then under some conditions, the test statistic defined in (\ref{eq5.4}) would be asymptotically distributed as \(\chi^{2}(1)\) under the null hypothesis.</p>
+
+<p>For the test statistic (\ref{eq5.4}), equation (\ref{eq5.3}) becomes</p>
+
+\[\begin{eqnarray}
+\nonumber
+\left(\frac{\hat{\theta}-\theta_{0}}{s_{\theta}}\right)^{2}&amp;=&amp;c_{\alpha}\\
+\label{eq5.5}
+|\hat{\theta}-\theta_{0}|&amp;=&amp;s_{\theta}c_{\alpha}^{1/2}\\
+\nonumber
+\theta&amp;=&amp;\hat{\theta}\pm s_{\theta}c_{\alpha}^{1/2}
+\end{eqnarray}\]
+
+<p>So the asymptotic \(1-\alpha\) confidence interval for \(\theta\) is</p>
+
+\[\begin{eqnarray}
+\label{eq5.6}
+\Big[\hat{\theta}- s_{\theta}c_{\alpha}^{1/2}&amp;,&amp;\hat{\theta}+ s_{\theta}c_{\alpha}^{1/2}\Big]
+\end{eqnarray}\]
+
+<h2 id="asymmetric-confidence-intervals">Asymmetric Confidence Intervals</h2>
+<p>The confidence interval (\ref{eq5.6}) is a symmetric one, because \(\theta_{l}\) is as far below \(\hat{\theta}\) as \(\theta_{u}\) is above it. Not all confidence intervals are symmetric.</p>
+
+<p>It is possible to construct confidence intervals based on one-tailed tests. Such an interval will be open all the way out to infinity in one direction.</p>
+
+<h2 id="p-values-and-asymmetric-distributions">\(P\) Values and Asymmetric Distributions</h2>
+<p>\(P\) value is defined, as usual, as the smallest level for which the test rejects.</p>
+
+<p>The \(P\) value associated with a statistic \(\tau\) should be</p>
+
+\[\begin{eqnarray*}
+\text{$P$-value}&amp;=&amp;
+\begin{cases}
+2F(\tau) &amp;  \tau \text{is in the lower tail} \\
+2(1-F(\tau)) &amp; \tau \text{is in the upper tail} \\
+\end{cases}
+\end{eqnarray*}\]
+
+<p>In complete generality, we have the \(P\) value is</p>
+
+\[\begin{eqnarray}
+\label{eq5.7}
+p(\tau)&amp;=&amp;2\min (F(\tau), 1-F(\tau))
+\end{eqnarray}\]
+
+<h2 id="exact-confidence-intervals-for-regression-coefficients">Exact Confidence Intervals for Regression Coefficients</h2>
+<p>The \(t\) statistic for the hypothesis that \(\beta_{2} = \beta_{20}\) for any particular value \(\beta_{20}\) can be written as</p>
+
+\[\begin{eqnarray}
+\label{eq5.8}
+\frac{\hat{\beta}_{2}-\beta_{20}}{s_{2}}
+\end{eqnarray}\]
+
+<p>the \(t\) statistic (\ref{eq5.8}) has the \(t(n-k)\) distribution, and so</p>
+
+\[\begin{eqnarray}
+\label{eq5.9}
+\Pr\left(t_{\alpha/2}\leq \frac{\hat{\beta}_{2}-\beta_{20}}{s_{2}}\leq t_{1-(\alpha/2)}\right)&amp;=&amp;1-\alpha
+\end{eqnarray}\]
+
+<p>where \(t_{\alpha/2}\) denote the \(\alpha/2\) quantiles of \(t(n-k)\) distribution.</p>
+
+<p>Therefore, the confidence interval is</p>
+
+\[\begin{eqnarray}
+\label{eq5.10}
+\Big[\hat{\beta}_{2}-s_{2}t_{1-(\alpha/2)}&amp;,&amp;\hat{\beta}_{2}-s_{2}t_{\alpha/2}\Big]\\
+\label{eq5.11}
+\Big[\hat{\beta}_{2}-s_{2}t_{1-(\alpha/2)}&amp;,&amp;\hat{\beta}_{2}+t_{1-(\alpha/2)}\Big]
+\end{eqnarray}\]
+
+<h1 id="confidence-regions">Confidence Regions</h1>
+<p>Suppose that we have a \(k\)-vector of parameter estimates \(\hat{\theta}\), of which the covariance matrix \(Var(\hat{\theta})\) can be estimated by \(\widehat{Var}(\hat{\theta})\). Then, the statistic</p>
+
+\[\begin{eqnarray}
+\label{eq5.12}
+(\hat{\theta}-\theta_{0})^{T}\left(\widehat{Var}(\hat{\theta})\right)^{-1}(\hat{\theta}-\theta_{0})
+\end{eqnarray}\]
+
+<p>can be used to test the joint null hypothesis that \(\theta=\theta_{0}\). (\ref{eq5.12}) is asymptotically distributed as \(\chi^{2}(k)\) under the null hypothesis.</p>
+
+<h2 id="asymptotic-normality-and-root-n-consistency">Asymptotic Normality and Root-\(n\) Consistency</h2>
+<p>We introduce <strong>asymptotic normality</strong> for linear regression models.</p>
+
+<p>The DGP is</p>
+
+\[\begin{eqnarray}
+\label{eq5.13}
+y&amp;=&amp;X\beta_{0}+u,\ \  u\sim IID(0, \sigma_{0}^{2}I)
+\end{eqnarray}\]
+
+<p>The random vector \(v=n^{-1/2}X^{T}u\) follows the asymptotic normal distribution, with mean \(0\) and covariance matrix \(\sigma_{0}^{2}S_{X^{T}X}\), where \(S_{X^{T}X}\) is the plim of \(n^{-1}X^{T}X\) as \(n\to\infty\).</p>
+
+<p>For the DGP (\ref{eq5.13}), we have</p>
+
+\[\begin{eqnarray}
+\label{eq5.14}
+\hat{\beta}-\beta_{0}&amp;=&amp;(X^{T}X)^{-1}X^{T}u
+\end{eqnarray}\]
+
+<p>We know under fairly weak condition, \(\hat{\beta}\) will be consistent, i.e. (\ref{eq5.14}) tends to a limit of \(0\) as \(n\to\infty\). Thus it would appear that asymptotic theory has nothing to say about limiting variances for consistent estimators.</p>
+
+<p>However, we can introduce \(n^{1/2}\) to correct.</p>
+
+\[\begin{eqnarray*}
+n^{1/2}(\hat{\beta}-\beta_{0})&amp;=&amp;\left(\frac{1}{n}X^{T}X\right)^{-1}n^{-1/2}X^{T}u
+\end{eqnarray*}\]
+
+<p>The first term of right-hand side tends to \(S^{-1}_{X^{T}X}\) as \(n\to\infty\), and the second factor (\(v\)) tends to random vector distributed as \(N(0,\sigma_{0}^{2}S_{X^{T}X})\). Because \(S_{X^{T}X}\) is deterministic, we find that, asymptotically,</p>
+
+\[\begin{eqnarray*}
+Var(n^{1/2}(\hat{\beta}-\beta_{0}))&amp;=&amp;\sigma^{2}_{0}S^{-1}_{X^{T}X}S_{X^{T}X}S^{-1}_{X^{T}X}=\sigma_{0}^{2}S^{-1}_{X^{T}X}
+\end{eqnarray*}\]
+
+<p>and</p>
+
+\[\begin{eqnarray}
+\label{eq5.15}
+n^{1/2}(\hat{\beta}-\beta_{0})&amp;\sim_{a}&amp;N(0,\sigma_{0}^{2}S^{-1}_{X^{T}X})
+\end{eqnarray}\]
+
+<h1 id="heteroskedasticity-consistent-covariance-matrices">Heteroskedasticity-Consistent Covariance Matrices</h1>
+<p>We focus on the linear regression model with exogenous regressors,</p>
+
+\[\begin{eqnarray}
+\label{eq5.5.1}
+y&amp;=&amp;X\beta+u,\ \ E(u)=0,\ \ E(uu^{T})=\Omega
+\end{eqnarray}\]
+
+<p>where \(\Omega\), the error covariance matrix, is an \(n\times n\) matrix with \(t^{th}\) diagonal element equal to \(\omega_{t}^{2}\) and all the off-diagonal elements equal to 0. These error terms are said to be <strong>heteroskedastic</strong>, or exhibit <strong>heteroskedasticity</strong>.</p>
+
+<p>The covariance matrix of OLS estimator \(\hat{\beta}\) is equal to</p>
+
+\[\begin{eqnarray}
+\nonumber
+E\left((\hat{\beta}-\beta)(\hat{\beta}-\beta)^{T}\right)&amp;=&amp;(X^{T}X)^{-1}X^{T}E(uu^{T})X(X^{T}X)^{-1}\\
+\label{eq5.5.2}
+&amp;=&amp;(X^{T}X)^{-1}X^{T}\Omega X(X^{T}X)^{-1}
+\end{eqnarray}\]
+
+<p>This form of covariance matrix is often called a <strong>sandwich covariance matrix</strong>.</p>
+
+<p>Usually we do not know \(\omega_{t}^{2}\). Since there are \(n\) of them, we cannot hope to estimate the \(\omega_{t}^{2}\) consistently without making additional assumptions.</p>
+
+<p>We find that</p>
+
+\[\begin{eqnarray}
+\label{eq5.10.3}
+Avar(n^{1/2}(\hat{\beta}-\beta))&amp;=&amp;\lim_{n\to\infty}\left(\frac{1}{n}X^{T}X\right)^{-1}\lim_{n\to\infty}\left(\frac{1}{n}X^{T}\Omega X\right)\lim_{n\to\infty}\left(\frac{1}{n}X^{T}X\right)^{-1}
+\end{eqnarray}\]
+
+<p>Assuming \(\mathop{plim} \frac{1}{n}X^{T}X=S_{X^{T}X}\), factor \(\lim\left(\frac{1}{n}X^{T}X\right)^{-1}\) tends to a finite, deterministic, positive definite matrix \((S_{X^{T}X})^{-1}\).</p>
+
+<p>White (1980) showed that under certain conditions, the second factor \(\lim\left(\frac{1}{n}X^{T}\Omega X\right)\) can be estimated consistently by</p>
+
+\[\begin{eqnarray}
+\label{eq5.10.4}
+\frac{1}{n}X^{T}\hat{\Omega}X
+\end{eqnarray}\]
+
+<p>where \(\hat{\Omega}\) is an inconsistent estimator of \(\Omega\). One version of \(\hat{\Omega}\) is a diagonal matrix with \(t^{th}\) diagonal element equal to \(\hat{u}_{t}^{2}\), the \(t^{th}\) squared OLS residual.</p>
+
+<p>The \(k\times k\) matrix \(\lim\left(\frac{1}{n}X^{T}\Omega X\right)\), is symmetric. Therefore, it has \(\frac{1}{2}(k^{2}+k)\) distinct elements. Its \(ij^{th}\) element is</p>
+
+\[\begin{eqnarray}
+\label{eq5.5.5}
+\lim_{n\to\infty}\left(\frac{1}{n}\sum_{t=1}^{n}\omega_{t}^{2}X_{ti}X_{tj}\right)
+\end{eqnarray}\]
+
+<p>For the simplest version of \(\hat{\Omega}\) is</p>
+
+\[\begin{eqnarray}
+\label{eq5.5.6}
+\frac{1}{n}\sum_{t=1}^{n}\hat{u}_{t}^{2}X_{ti}X_{tj}
+\end{eqnarray}\]
+
+\[\begin{eqnarray*}
+n^{1/2}(\hat{\beta}-\beta)&amp;=&amp;\left(\frac{1}{n}\sum_{t=1}^{n}X_{t}^{T}X_{t}\right)^{-1}\sqrt{n}\left(\frac{1}{n}\sum_{t=1}^{n}X_{t}^{T}u_{t}-0\right)\\
+&amp;\sim_{a}&amp;N\left(0,E(X_{t}^{T}X_{t})^{-1}E(u_{t}^{2}X_{t}^{T}X_{t})E(X_{t}^{T}X_{t})^{-1}\right)
+\end{eqnarray*}\]
+
+<p>Using OLS residuals \(\hat{u}_{t}=y_{t}-X_{t}\hat{\beta}\) as consistent estimates error terms \(u_{t}==y_{t}-X_{t}\beta\), we obtain the following consistent estimate for the asymptotic covariance matrix</p>
+
+\[\begin{eqnarray*}
+\widehat{Var}(n^{1/2}(\hat{\beta}-\beta))&amp;=&amp;\left(\frac{1}{n}\sum_{t=1}^{n}X_{t}^{T}X_{t}\right)^{-1}\left(\frac{1}{n}\sum_{t=1}^{n}\hat{u}_{t}^{2}X_{t}^{T}X_{t}\right)\left(\frac{1}{n}\sum_{t=1}^{n}X_{t}^{T}X_{t}\right)^{-1}
+\end{eqnarray*}\]
+
+<p>Then dividing by \(n\) gives an approximation of the covariance matrix of \(\widehat{Var}(\hat{\beta})\)</p>
+
+\[\begin{eqnarray*}
+\widehat{Var}(\hat{\beta})&amp;=&amp;\left(\sum_{t=1}^{n}X_{t}^{T}X_{t}\right)^{-1}\left(\sum_{t=1}^{n}\hat{u}_{t}^{2}X_{t}^{T}X_{t}\right)\left(\sum_{t=1}^{n}X_{t}^{T}X_{t}\right)^{-1}\\
+&amp;=&amp;\left(X^{T}X\right)^{-1}X^{T}\hat{\Omega}X\left(X^{T}X\right)^{-1}
+\end{eqnarray*}\]
+
+<p>where \(\hat{\Omega}\) is a diagonal matrix with \(\hat{u}_{1}^{2},\dots,\hat{u}_{n}^{2}\) on the diagonal.</p>
+
+<h1 id="delta-method">Delta Method</h1>
+<p>How to estimate the covariance matrix of a nonlinear function of a vector parameter estimates?</p>
+
+<p>For example, if we know \(\hat{\theta}\) is an estimator for \(\theta\) and \(\gamma=g(\theta)\), the obvious way to estimate \(\gamma\) is to use \(\hat{\gamma}=g(\hat{\theta})\). The problem is to estimate the variance of \(\hat{\gamma}\). The idea of the delta method is to find a linear approximation to \(g(\theta)\). Since we know how to calculate the variance for linear function, we can apply the approximation to it.</p>
+
+<p>Suppose \(\hat{\theta}\) is a \(k\times 1\) matrix of \(\sqrt{n}\)-consistent estimate of \(\theta\)</p>
+
+\[\begin{eqnarray}
+\label{eq51}
+n^{1/2}(\hat{\theta}-\theta)&amp;\sim_{a}&amp;N(0, V^{\infty}(\hat{\theta}))
+\end{eqnarray}\]
+
+<p>and \(g: \theta_{k\times 1}\mapsto g(\theta)_{\ell\times 1}\) with \(\ell\leq k\)</p>
+
+<p>\(\gamma=g(\theta)\) is a \(\ell\)-vector of monotonic functions that are continuously differentiable.</p>
+
+<p>By Taylor expansion,</p>
+
+\[\begin{eqnarray}
+\label{eq52}
+g(\hat{\theta})&amp;\cong&amp; g(\theta)+g'(\theta)(\hat{\theta}-\theta)
+\end{eqnarray}\]
+
+<p>where</p>
+
+\[\begin{eqnarray*}
+g'(\theta)&amp;=&amp;\left[\begin{array}{ccc}
+\frac{\partial g_{1}}{\partial \theta_{1}}&amp;\cdots&amp;\frac{\partial g_{1}}{\partial \theta_{k}}\\
+\vdots&amp;\ddots&amp;\vdots\\
+\frac{\partial g_{\ell}}{\partial \theta_{1}}&amp;\cdots&amp;\frac{\partial g_{\ell}}{\partial \theta_{k}}
+\end{array}
+\right]
+\end{eqnarray*}\]
+
+<p>Rewrite (\ref{eq52})</p>
+
+\[\begin{eqnarray}
+\label{eq53}
+n^{1/2}(g(\hat{\theta})-g(\theta))&amp;\cong&amp; g'(\theta)n^{1/2}(\hat{\theta}-\theta)
+\end{eqnarray}\]
+
+<p>It can be shown that</p>
+
+\[\begin{eqnarray}
+\label{eq54}
+\mathop{plim}_{n\to\infty}n^{1/2}(g(\hat{\theta})-g(\theta))&amp;=&amp;\mathop{plim}_{n\to\infty} g'(\theta)n^{1/2}(\hat{\theta}-\theta)\\
+&amp;\sim_{a}&amp;N(0,g'(\theta)V^{\infty}(\hat{\theta})g'(\theta)^{T})
+\end{eqnarray}\]
+
+<p>In practice, the covariance matrix of \(\hat{\gamma}\) may be estimated by the matrix</p>
+
+\[\begin{eqnarray}
+\label{eq55}
+\widehat{Var}(\hat{\gamma})&amp;=&amp;g'(\theta)\widehat{Var}(\hat{\theta})(\hat{\theta})g'(\theta)^{T}
+\end{eqnarray}\]]]></content><author><name></name></author><category term="note" /><category term="econometics" /><summary type="html"><![CDATA[The sixth chapter of Econometric Theory and Methods]]></summary></entry><entry><title type="html">Davidson and MacKinnon Chapter 7—Generalized Least Squares and Related Topics</title><link href="https://lingboshen.github.io/blog/2022/DMCh7/" rel="alternate" type="text/html" title="Davidson and MacKinnon Chapter 7—Generalized Least Squares and Related Topics" /><published>2022-10-23T15:12:00+00:00</published><updated>2022-10-23T15:12:00+00:00</updated><id>https://lingboshen.github.io/blog/2022/DMCh7</id><content type="html" xml:base="https://lingboshen.github.io/blog/2022/DMCh7/"><![CDATA[<h1 id="introduction">Introduction</h1>
+<p>We will be concerned with the model</p>
+
+\[\begin{eqnarray}
+\label{eq7.1}
+y&amp;=&amp;X\beta+u\ \ ,\ \ E(uu^{T})=\Omega
+\end{eqnarray}\]
+
+<p>where  \(\Omega\) is the covariance matrix of the error terms, is a positive definite \(n\times n\) matrix. We consider following cases for \(\Omega\):</p>
+
+<ul>
+  <li>\(\Omega=\sigma^{2}I\): (\ref{eq7.1}) is the classic linear regression model</li>
+  <li>\(\Omega\) is diagonal with nonconstant diagonal elements: heteroskedastic</li>
+  <li>\(\Omega\) is not diagonal</li>
+</ul>
+
+<h1 id="the-gls-estimator">The GLS Estimator</h1>
+<p>We transform the model (\ref{eq7.1}) so that the transformed model satisfied the conditions of the Gauss-Markov theorem. Let \(\Psi\) be a \(n\times n\) triangular matrix that satisfies</p>
+
+\[\begin{eqnarray}
+\label{eq7.2}
+\Omega^{-1}&amp;=&amp;\Psi\Psi^{T}
+\end{eqnarray}\]
+
+<p>Premultiplying (\ref{eq7.1}) by \(\Psi^{T}\) gives</p>
+
+\[\begin{eqnarray}
+\label{eq7.3}
+\Psi^{T}y&amp;=&amp;\Psi^{T}X\beta+\Psi^{T}u
+\end{eqnarray}\]
+
+<p>The OLS estimator of \(\beta\) from regression (\ref{eq7.3}) is</p>
+
+\[\begin{eqnarray}
+\label{eq7.4}
+\hat{\beta}_{GLS}&amp;=&amp;\left(X^{T}\Psi\Psi^{T}X\right)^{-1}X^{T}\Psi\Psi^{T}y=\left(X^{T}\Omega^{-1}X\right)^{-1}X^{T}\Omega^{-1}y
+\end{eqnarray}\]
+
+<p>This estimator is called the <strong>generalized least squares</strong>, or <strong>GLS</strong>, estimator of \(\beta\)</p>
+
+<p>It is easy to show that the covariance matrix of transformed model (\ref{eq7.3}) is the identity matrix</p>
+
+\[\begin{eqnarray*}
+E(\Psi^{T}uu^{T}\Psi)&amp;=&amp;\Psi^{T}E(uu^{T})\Psi\\
+&amp;=&amp;\Psi^{T}\Omega\Psi\\
+&amp;=&amp;\Psi^{T}(\Psi\Psi^{T})^{-1}\Psi\\
+&amp;=&amp;\Psi^{T}(\Psi^{T})^{-1}\Psi^{-1}\Psi=I\\
+\end{eqnarray*}\]
+
+<p>And we find</p>
+
+\[\begin{eqnarray}
+\label{eq7.5}
+Var(\hat{\beta}_{GLS})&amp;=&amp;(X^{T}\Psi\Psi^{T}X)^{-1}=(X^{T}\Omega^{-1}X)^{-1}
+\end{eqnarray}\]
+
+<p>The generalized least squares estimator \(\hat{\beta}_{GLS}\) can also be obtained by minimizing the <strong>GLS criterion function</strong></p>
+
+\[\begin{eqnarray}
+\nonumber
+(\Psi^{T}u)^{T}\Psi^{T}u&amp;=&amp;(\Psi^{T}y-\Psi^{T}X\beta)^{T}(\Psi^{T}y-\Psi^{T}X\beta)\\
+\nonumber
+&amp;=&amp;(y-X\beta)^{T}\Psi\Psi^{T}(y-X\beta)\\
+\label{eq7.6}
+&amp;=&amp;(y-X\beta)^{T}\Omega^{-1}(y-X\beta)
+\end{eqnarray}\]
+
+<h2 id="efficiency-of-the-gls-estimator">Efficiency of the GLS Estimator</h2>
+<p>The GLS estimator \(\hat{\beta}_{GLS}\) defined in (\ref{eq7.4}) is also the solution of the set of moment conditions</p>
+
+\[\begin{eqnarray}
+\nonumber
+(\Psi^{T}X)^{T}(\Psi^{T}y-\Psi^{T}X\beta)&amp;=&amp;0\\
+\nonumber
+X^{T}\Psi\Psi^{T}(y-X\beta)&amp;=&amp;0\\
+\label{eq7.7}
+X^{T}\Omega^{-1}(y-X\beta_{GLS})&amp;=&amp;0
+\end{eqnarray}\]
+
+<p>GLS estimator is a method of moments estimator. A general MM estimator for the linear regression model (\ref{eq7.1}) is defined in terms of an \(n\times k\) matrix of exogenous variables \(W\)</p>
+
+\[\begin{eqnarray}
+\label{eq7.8}
+W^{T}(y-X\beta)&amp;=&amp;0
+\end{eqnarray}\]
+
+<p>We obtain the MM estimator</p>
+
+\[\begin{eqnarray}
+\label{eq7.9}
+\hat{\beta}_{W}&amp;\equiv&amp;(W^{T}X)^{-1}W^{T}y
+\end{eqnarray}\]
+
+<p>The GLS estimator (\ref{eq7.4}) is a special case of the MM estimator, with \(W=\Omega^{-1}X\).</p>
+
+<p>We can rewrite \(\hat{\beta}_{W}=\beta_{0}+(W^{T}X)^{-1}W^{T}u\). Thus, the covariance matrix of \(\hat{\beta}_{W}\) is</p>
+
+\[\begin{eqnarray}
+\nonumber
+Var(\hat{\beta}_{W})&amp;=&amp;E\left((\hat{\beta}_{W}-\beta_{0})(\hat{\beta}_{W}-\beta_{0})^{T}\right)\\
+\nonumber
+&amp;=&amp;E\left((W^{T}X)^{-1}W^{T}uu^{T}W(X^{T}W)^{-1}\right)\\
+\label{eq7.10}
+&amp;=&amp;(W^{T}X)^{-1}W^{T}\Omega W(X^{T}W)^{-1}
+\end{eqnarray}\]
+
+<p>The efficiency of the GLS estimator can be verified by showing that the difference between (\ref{eq7.10}), the covariance matrix of the MM estimator \(\hat{\beta}_{W}\), and (\ref{eq7.5}), the covariance matrix of GLS estimator, \(\hat{\beta}_{GLS}\), is a positive semidefinite matrix. That is, the matrix</p>
+
+\[\begin{eqnarray}
+\label{eq7.11}
+(W^{T}X)^{-1}W^{T}\Omega W(X^{T}W)^{-1}
+&amp;-&amp;(X^{T}\Omega^{-1}X)^{-1}
+\end{eqnarray}\]
+
+<p>is a positive semidefinite matrix.</p>
+
+<p>By the theory of linear algebra, (\ref{eq7.11}) is positive semidefinite if and only if</p>
+
+\[\begin{eqnarray*}
+\left((X^{T}\Omega^{-1}X)^{-1}\right)^{-1}&amp;-&amp;\left((W^{T}X)^{-1}W^{T}\Omega W(X^{T}W)^{-1}\right)^{-1}\\
+X^{T}\Omega^{-1}X&amp;-&amp;X^{T}W(W^{T}\Omega W)^{-1}W^{T}X\\
+\end{eqnarray*}\]
+
+<p>is positive semidefinite.</p>
+
+<p>The GLS estimator \(\hat{\beta}_{GLS}\) is typically more efficient than the more general MM estimator \(\hat{\beta}_{W}\). Because the OLS estimator \(\hat{\beta}_{OLS}\) is just special case of \(\hat{\beta}_{W}\) when \(W=X\), we could conclude that \(\hat{\beta}_{GLS}\) will in most cases be more efficient, and will never be less efficient, than the OLS estimator \(\hat{\beta}_{OLS}\).</p>
+
+<h1 id="computing-gls-estimates">Computing GLS Estimates</h1>
+<p>Suppose \(\Omega=\sigma^{2}\Delta\), and \(\Delta\) is known and \(\sigma^{2}\) is unknown. If we replace \(\Omega\) by \(\Delta\) in (\ref{eq7.2}) of \(\Psi\),</p>
+
+\[\begin{eqnarray*}
+\Delta^{-1}&amp;=&amp;\Psi\Psi^{T}
+\end{eqnarray*}\]
+
+<p>we still run regression (\ref{eq7.3})</p>
+
+\[\begin{eqnarray*}
+\Psi^{T}y&amp;=&amp;\Psi^{T}X\beta+\Psi^{T}u
+\end{eqnarray*}\]
+
+<p>The GLS estimates will be the same whether we use \(\Omega\) or \(\Delta\).</p>
+
+<p>However, if \(\sigma^{2}\) is known, we can use the true covariance matrix (\ref{eq7.5}). Otherwise, we must estimate covariance matrix</p>
+
+\[\begin{eqnarray}
+\label{eq7.12}
+\widehat{Var}(\hat{\beta}_{GLS})&amp;=&amp;s^{2}(X^{T}\Delta^{-1}X)^{-1}
+\end{eqnarray}\]
+
+<h2 id="weighted-least-squares">Weighted Least Squares</h2>
+<p>GLS estimation will be easy to do if the matrix \(\Psi\) is known and allow us to calculate \(\Psi^{T}x\).</p>
+
+<p>When error terms are heteroskedastic but uncorrelated, i.e., \(\Omega\) is diagonal. Let \(\omega_{t}^{2}\) denote the \(t^{th}\) diagonal element of \(\Omega\), and \(\omega_{t}^{-2}\) is the \(t^{th}\) diagonal element of \(\Omega^{-1}\).  \(\Psi\) can be chosen as the diagonal matrix with \(t^{th}\) diagonal element \(\omega_{t}^{-1}\)</p>
+
+\[\begin{eqnarray*}
+\Omega=\left[\begin{array}{cccc}
+\omega_{1}^{2}&amp;0&amp;\cdots&amp;0\\
+0&amp;\omega_{2}^{2}&amp;\cdots&amp;0\\
+\vdots&amp;\vdots&amp;\ddots &amp;\vdots\\
+0&amp;0&amp;\cdots&amp;\omega_{k}^{2}
+\end{array}
+\right]&amp;,&amp;\Omega^{-1}=\left[\begin{array}{cccc}
+\omega_{1}^{-2}&amp;0&amp;\cdots&amp;0\\
+0&amp;\omega_{2}^{-2}&amp;\cdots&amp;0\\
+\vdots&amp;\vdots&amp;\ddots &amp;\vdots\\
+0&amp;0&amp;\cdots&amp;\omega_{k}^{-2}
+\end{array}
+\right]
+\end{eqnarray*}\]
+
+<p>and</p>
+
+\[\begin{eqnarray*}
+\Psi&amp;=&amp;\left[\begin{array}{cccc}
+\omega_{1}^{-1}&amp;0&amp;\cdots&amp;0\\
+0&amp;\omega_{2}^{-1}&amp;\cdots&amp;0\\
+\vdots&amp;\vdots&amp;\ddots &amp;\vdots\\
+0&amp;0&amp;\cdots&amp;\omega_{k}^{-1}
+\end{array}
+\right]
+\end{eqnarray*}\]
+
+<p>Thus we see that, for a typical observation, regression (\ref{eq7.3}) can be written as</p>
+
+\[\begin{eqnarray}
+\label{eq7.13}
+\omega_{t}^{-1}y_{t}&amp;=&amp;\omega_{t}^{-1}X_{t}\beta+\omega_{t}^{-1}u_{t}
+\end{eqnarray}\]
+
+<p>the variance of the error term is clearly 1.</p>
+
+<p>This special case of GLS estimation is often called <strong>weighted least squares</strong>, or <strong>GLS</strong>.</p>
+
+<h1 id="feasible-generalized-least-squares">Feasible Generalized Least Squares</h1>
+<p>In practice, the covariance matrix \(\Omega\) is often not known even up to a scalar factor. This makes it impossible to compute GLS estimates.</p>
+
+<p>However, it is reasonable to suppose that \(\Omega\), or \(\Delta\), depends in a known way on a vector of unknown parameters \(\gamma\). If so, it may be possible to estimate \(\gamma\) consistently, so as to obtain \(\Omega(\hat{\gamma})\). Then \(\Psi(\hat{\gamma})\) can be defined in (\ref{eq7.2}), and GLS estimates computed conditional on \(\Psi(\hat{\gamma})\). This type of procedure is called <strong>feasible generalized least squares</strong>, or <strong>feasible GLS</strong>.</p>
+
+<p>For example, suppose the feasible GLS estimates of the linear regression model is</p>
+
+\[\begin{eqnarray}
+\label{eq7.14}
+y_{t}=X_{t}\beta+u_{t}&amp;,&amp;E(u_{t}^{2})=\exp(Z_{t}\gamma)
+\end{eqnarray}\]
+
+<p>where \(\beta\) and \(\gamma\) are a \(k\)-vector and an \(l\)-vector of unknown parameters, respectively. \(X_{t}\) and \(Z_{t}\) are comformably dimensioned row vectors of observation set on which we are conditioning. Some of the elements of \(Z_{t}\) may well belong to \(X_{t}\). The function \(\exp(Z_{t}\gamma)\) is an example of a <strong>skedastic function</strong>.</p>
+
+<p>Steps to do FGLS</p>
+
+<ul>
+  <li>
+    <p>To obtain consistent estimates of \(\gamma\), we must first obtain consistent estimates of the error terms in (\ref{eq7.14}).</p>
+  </li>
+  <li>
+    <p>Computing OLS estimates \(\hat{\beta}\) allows us to calculate a vector of OLS residuals with typical element \(\hat{u}_{t}\).</p>
+  </li>
+  <li>
+    <p>Run auxiliary linear regression</p>
+  </li>
+</ul>
+
+\[\begin{eqnarray}
+\label{eq7.15}
+\log \hat{u}_{t}^{2}&amp;=&amp;Z_{t}\gamma+v_{t}
+\end{eqnarray}\]
+
+<p>to find OLS estimates \(\hat{\gamma}\).</p>
+
+<ul>
+  <li>Compute</li>
+</ul>
+
+\[\begin{eqnarray*}
+\hat{\omega}_{t}&amp;=&amp;\left(\exp(Z_{t}\hat{\gamma})\right)^{1/2}
+\end{eqnarray*}\]
+
+<ul>
+  <li>Feasible GLS of \(\beta\) are obtained by using ordinary least squares to estimate regression (\ref{eq7.13}), with the estimates \(\hat{\omega}_{t}\) replacing the unknown \(\omega_{t}\).</li>
+</ul>
+
+<h2 id="why-fgls-works">Why FGLS Works</h2>
+<p>Under suitable regularity conditions, it can be shown that this type of procedure leads a feasible GLS estimator \(\hat{\beta}_{F}\) that is consistent and asymptotically equivalent to the GLS estimator \(\hat{\beta}_{GLS}\).</p>
+
+<h1 id="heteroskedasticity">Heteroskedasticity</h1>
+<p>If we have no information on the form of the skedastic function, it may be prudent to employ an HCCME, especially if the sample size is large.</p>
+
+<p>If we have information on the form of the skedastic function, we might well wish to use weighted least squares.</p>
+
+<p>It makes no difference asymptotically whether the \(\omega_{t}\) are known or merely estimated consistently, although it can certainly make a substantial difference in finite samples. Asymptotically, at least, the usual OLS covariance matrix is just as valid with feasible WLS as with WLS.</p>
+
+<h2 id="testing-for-heteroskedasticity">Testing for Heteroskedasticity</h2>
+<p>Before doing so, it is advisable to perform a <strong>specification test</strong> of the \underline{null hypothesis that the error terms are homoskedastic against whatever heteroskedastic} alternatives may seem reasonable.</p>
+
+<p>White showed that, in a linear regression model, if \(E(u_{t}^{2})\) is constant conditional on the squares and cross-products of all the regressors, then there is no need to use an HCCME.</p>
+
+<h1 id="autoregressive-processes">Autoregressive Processes</h1>
+<p>The error terms for nearby observations may be correlated, or may appear to be correlated. This phenomenon is most commonly encountered in models estimated with time-series data, where it is known as <strong>serial correlation</strong> or <strong>autocorrelation</strong>.</p>
+
+<p>If there is reason to believe that serial correlation may be present</p>
+
+<ul>
+  <li>Step 1: Test the null hypothesis that the errors are serially uncorrelated against a plausible alternative that involves serial correlation.</li>
+  <li>Step 2: If evidence of serial correlation is found, estimate a model that accounts for it based on NLS and GLS.</li>
+  <li>Step 3: Verify that the model which accounts for serial correlation is compatible with the data</li>
+</ul>
+
+<h2 id="the-ar1-process">The AR(1) Process</h2>
+<p>One of the simplest and most commonly used stochastic processes is the <strong>first-order autoregressive process</strong>, or <strong>AR(1) process</strong>, which can be written as</p>
+
+\[\begin{eqnarray}
+\label{eq7.16}
+u_{t}=\rho u_{t-1}+\varepsilon_{t}&amp;,&amp;\varepsilon_{t}\sim \mbox{IID}(0,\sigma_{\varepsilon})^{2},\ \ |\rho|&lt;1
+\end{eqnarray}\]
+
+<p>It is assumed that \(\varepsilon_{t}\) is independent of \(\varepsilon_{s}\) for all \(s\neq t\), \(\varepsilon_{t}\) is an innovation.</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>$$</td>
+      <td>\rho</td>
+      <td>&lt;1$$ is called a <strong>stationarity condition</strong>, because it is necessary for the AR(1) process to be <strong>stationary</strong>.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The <strong>covariance stationarity/wide sense stationarity</strong> is defined as \(E(u_{t})\) and \(Var(u_{t}\) exist and are independent of \(t\) and if the covariance \(Cov(u_{t},u_{t-j})\) is independent of \(t\).</p>
+
+<p>We can then compute the variance of \(u_{t}\) by substituting successively for \(u_{t-1}\), \(u_{t-2}\), \(u_{t-3}\), and so on in (\ref{eq7.16})</p>
+
+\[\begin{eqnarray}
+\label{eq7.17}
+u_{t}&amp;=&amp;\varepsilon_{t}+\rho\varepsilon_{t-1}+\rho^{2}\varepsilon_{t-2}+\rho^{3}\varepsilon_{t-3}+\cdots
+\end{eqnarray}\]
+
+<p>The variance of \(u_{t}\) is seen to be</p>
+
+\[\begin{eqnarray}
+\label{eq7.18}
+\sigma_{u}^{2}&amp;=&amp;\sigma_{\varepsilon}^{2}+\rho^{2}\sigma_{\varepsilon}^{2}+\rho^{4}\sigma_{\varepsilon}^{2}+\rho^{6}\sigma_{\varepsilon}^{2}+\cdots=\frac{\sigma_{\varepsilon}^{2}}{1-\rho^{2}}
+\end{eqnarray}\]
+
+<p>We can get that \(Var(u_{t})=\sigma_{\varepsilon}^{2}/(1-\rho^{2})\) for all \(t\).</p>
+
+<p>The covariance for \(u_{t}\) and \(u_{t-1}\) of the AR(1) is</p>
+
+\[\begin{eqnarray*}
+Cov(u_{t},u_{t-1})&amp;=&amp;E(u_{t}u_{t-1})\\
+&amp;=&amp;E((\rho u_{t-1}+\varepsilon_{t})u_{t-1})\\
+&amp;=&amp;\rho \sigma_{u}^{2}
+\end{eqnarray*}\]
+
+<p>If the AR(1) process (\ref{eq7.16}) is stationary, the covariance matrix of the vector \(u\) can be written as</p>
+
+\[\begin{eqnarray}
+\label{eq7.19}
+\Omega(\rho)&amp;=&amp;\frac{\sigma_{\varepsilon}^{2}}{1-\rho^{2}}\left[
+\begin{array}{ccccc}
+1&amp;\rho&amp;\rho^{2}&amp;\cdots&amp;\rho^{n-1}\\
+\rho&amp;1&amp;\rho^{2}&amp;\cdots&amp;\rho^{n-2}\\
+\vdots&amp;\vdots&amp;\vdots&amp;&amp;\vdots\\
+\rho^{n-1}&amp;\rho^{n-2}&amp;\rho^{n-3}&amp;\cdots&amp;1
+\end{array}
+\right]
+\end{eqnarray}\]
+
+<h2 id="testing-for-serial-correlation">Testing for Serial Correlation</h2>
+
+<ul>
+  <li>Run OLS and compute OLS residuals \(\hat{u}=y-X
+\hat{\beta}_{OLS}\)</li>
+  <li>Auxiliary regression of OLS residuals \(\hat{u}\) on lagged values</li>
+</ul>
+
+\[\begin{eqnarray*}
+\hat{u}_{t}&amp;=&amp;\rho \hat{u}_{t-1}+\varepsilon_{t}
+\end{eqnarray*}\]
+
+<ul>
+  <li>\(t\) test for \(\rho=0\)</li>
+</ul>
+
+<h2 id="fgls-for-autoregression-process">FGLS for Autoregression Process</h2>
+<p>If the \(u_{t}\) follow a stationary AR(1) process, that is, if \(|\rho|&lt;1\) and \(Var(u_{t})=\sigma_{u}^{2}=\sigma_{\varepsilon}^{2}/(1-\rho^{2})\), then the covariance matrix of the entire vector \(\hat{u}\) is \(\Omega(\rho)\) defined in (\ref{eq7.19}).</p>
+
+<h1 id="moving-average-processes">Moving Average Processes</h1>
+<h2 id="the-ma1-process">The MA(1) Process</h2>
+
+\[\begin{eqnarray}
+\label{eq7.20}
+u_{t}=\varepsilon_{t}+\alpha_{1}\varepsilon_{t-1}&amp;,&amp;\varepsilon_{t}\sim \mbox{IID}(0,\sigma_{\varepsilon}^{2})
+\end{eqnarray}\]
+
+<p>\(u_{t}\) is a weighted average of two successive innovations, \(\varepsilon_{t}\) and \(\varepsilon_{t-1}\).</p>
+
+<p>The covariance matrix for an MA(1) process:</p>
+
+\[\begin{eqnarray*}
+Var(u_{t})&amp;=&amp;E\left((\varepsilon_{t}+\alpha_{1}\varepsilon_{t-1})^{2}\right)=\sigma_{\varepsilon}^{2}+\alpha_{1}^{2}\sigma_{\varepsilon}^{2}=(1+\alpha_{1}^{2})\sigma_{\varepsilon}^{2}\\
+Cov(u_{t},u_{t-1})&amp;=&amp;E\left((\varepsilon_{t}+\alpha_{1}\varepsilon_{t-1})(\varepsilon_{t-1}+\alpha_{1}\varepsilon_{t-2})\right)=\alpha_{1}\sigma_{\varepsilon}^{2}\\
+Cov(u_{t},u_{t-j})&amp;=&amp;E\left((\varepsilon_{t}+\alpha_{1}\varepsilon_{t-1})(\varepsilon_{t-j}+\alpha_{1}\varepsilon_{t-j-1})\right)=0
+\end{eqnarray*}\]
+
+<p>Therefore, the covariance matrix of the entire vector \(\hat{u}\) is</p>
+
+\[\begin{eqnarray}
+\label{eq7.21}
+\sigma_{\varepsilon}\Delta(\alpha_{1})&amp;=&amp;\sigma_{\varepsilon}^{2}\left[\begin{array}{cccccc}
+1+\alpha^{2}		&amp;\alpha	&amp;0	&amp;\cdots	&amp;0	&amp;0	\\
+\alpha	&amp;1+\alpha^{2}		&amp;\alpha	&amp;\cdots	&amp;0	&amp;0\\
+\vdots	&amp;\vdots	&amp;\vdots	&amp;	&amp;\vdots	&amp;\vdots\\
+0	&amp;0	&amp;0	&amp;\cdots&amp;\alpha	&amp;1+\alpha^{2}
+\end{array}\right]
+\end{eqnarray}\]
+
+<h1 id="models-for-panel-data">Models for Panel Data</h1>
+<p>We restrict our attention to the linear regression model</p>
+
+\[\begin{eqnarray}
+\label{eq7.10.1}
+y_{it}&amp;=&amp;X_{it}\beta+u_{it}
+\end{eqnarray}\]
+
+<p>where \(i=1,\dots, m\), \(t=1,\dots, T\), and \(X_{it}\) is a \(1\times k\) vector.</p>
+
+<p>If certain shocks affect the same cross-sectional unit at all points in time, the error terms \(u_{it}\) and \(u_{is}\) will be correlated for all \(t \neq s\). Similarly, if certain shocks affect all cross-sectional units at the same point in time, the error terms \(u_{it}\) and \(u_{j}\)t will be correlated for all \(i \neq j\).</p>
+
+<h2 id="error-components-models">Error-Components Models</h2>
+<p>The idea is to specify the error term \(u_{it}\) in (\ref{eq7.10.1}) as consisting of two or three separate shocks, each of which is assumed to be independent of the others.</p>
+
+\[\begin{eqnarray}
+\label{eq7.10.2}
+u_{it}&amp;=&amp;e_{t}+v_{i}+\varepsilon_{it}
+\end{eqnarray}\]
+
+<p>It is generally assumed that the \(e_t\) are independent across \(t\), the \(v_i\) are independent across \(i\), and the \(\varepsilon_{it}\), it are independent across all \(i\) and \(t\).</p>
+
+<p>If the \(e_t\) and \(v_i\) are thought of as <strong>fixed effects</strong>, then they are treated as parameters to be estimated.</p>
+
+<p>If they are thought of as <strong>random effects</strong>, then we must figure out the covariance matrix of the \(u_{it}\) as functions of the variances of the \(e_{t}\), \(v_{i}\), and \(\varepsilon_{it}\), and use feasible GLS.</p>
+
+<h2 id="random-effects-estimation">Random-Effects Estimation</h2>
+<p>Random-effects estimation requires that the \(v_{i}\) should be independent of \(X\). Then we have</p>
+
+\[\begin{eqnarray}
+\label{eq7.10.3}
+E(u_{it}|X)&amp;=&amp;E(v_{i}+\varepsilon_{it}|X)=0
+\end{eqnarray}\]
+
+<p>However \(u_{it}\) are not IID. Assuming that \(v_{i}\sim IID(0, \sigma^{2}_{v})\), \(e_{t}\), and shocks are independent, we find that</p>
+
+\[\begin{eqnarray*}
+Var(u_{it})&amp;=&amp;\sigma_{v}^{2}+\sigma_{\varepsilon}^{2}\\
+Cov(u_{it}, u_{is})&amp;=&amp;\sigma_{v}^{2}\\
+Cov(u_{it}, u_{js})&amp;=&amp;0
+\end{eqnarray*}\]
+
+<p>These define the elements of the covariance matrix \(\Omega\)</p>
+
+\[\begin{eqnarray*}
+\Omega&amp;=&amp;\left[\begin{array}{cccc}
+\Sigma&amp;0&amp;\cdots&amp;0\\
+0&amp;\Sigma&amp;\cdots&amp;0\\
+\vdots&amp;\vdots&amp;&amp;\vdots\\
+0&amp;0&amp;\cdots&amp;\Sigma\\
+\end{array}\right]
+\end{eqnarray*}\]
+
+<p>where</p>
+
+\[\begin{eqnarray}
+\label{eq7.10.4}
+\Sigma&amp;=&amp;\sigma_{\varepsilon}^{2}I_{T}+\sigma_{v}^{2}\iota\iota^{T}
+\end{eqnarray}\]
+
+<h2 id="properties-of-ols-estimator-in-random-effects-model">Properties of OLS estimator in Random Effects Model</h2>
+<p>Under the assumption that \(E(u|X)=0\), the OLS estimator in random effects model is unbiased and consistent. However, since the error term is heteroskedastic, OLS estimator is not efficient.</p>]]></content><author><name></name></author><category term="note" /><category term="econometics" /><summary type="html"><![CDATA[The seventh chapter of Econometric Theory and Methods]]></summary></entry><entry><title type="html">Davidson and MacKinnon Chapter 8—Instrumental Variables Estimation</title><link href="https://lingboshen.github.io/blog/2022/DMCh8/" rel="alternate" type="text/html" title="Davidson and MacKinnon Chapter 8—Instrumental Variables Estimation" /><published>2022-10-23T15:12:00+00:00</published><updated>2022-10-23T15:12:00+00:00</updated><id>https://lingboshen.github.io/blog/2022/DMCh8</id><content type="html" xml:base="https://lingboshen.github.io/blog/2022/DMCh8/"><![CDATA[<h1 id="introduction">Introduction</h1>
+<p>It is not always reasonable to assume that the error terms are innovations. There are commonly encountered situations in which the error terms are necessarily correlated with some of the regressors for the same observation.</p>
+
+<p>Even in these circumstances, however, it is usually possible, although not always easy, to define an information set \(\Omega_{t}\) for each observation such that</p>
+
+\[\begin{eqnarray}
+\label{eqiv1}
+E(u_{t}|\Omega_{t})&amp;=&amp;0
+\end{eqnarray}\]
+
+<p>Any regressor of which the value in period \(t\) is correlated with \(u_{t}\) cannot belong to \(\Omega_{t}\).</p>
+
+<h1 id="correlation-between-error-terms-and-regressors">Correlation Between Error Terms and Regressors</h1>
+<p>Two common situations in which the error terms will be correlated with the regressors. They are <strong>errors in variables</strong>,occurs whenever the independent variables in a regression model are measured with error and <strong>simultaneity</strong>, occurs whenever two or more endogenous variables are jointly determined by a system of simultaneous equations.</p>
+
+<h2 id="errors-in-variables">Errors in Variables</h2>
+<p>Measurement errors in the dependent variable of a regression model are generally of no great consequence, unless they are very large. However, measurement errors in the independent variables cause the error terms to be correlated with the regressors that are measured with error, and this causes OLS to be inconsistent.</p>
+
+<p>Consider the model</p>
+
+\[\begin{eqnarray}
+\label{eqiv2}
+y_{t}^{\circ}=\beta_{1}+\beta_{2}x_{t}^{\circ}+u_{t}^{\circ}&amp;,&amp;u_{t}^{\circ}\sim \mbox{IID}(0,\sigma^{2})
+\end{eqnarray}\]
+
+<p>where the variable \(x_{t}^{\circ}\) and \(y_{t}^{\circ}\) are not actually observed. Instead, we observe</p>
+
+\[\begin{eqnarray}
+\label{eqiv3}
+x_{t}=x_{t}^{\circ}+v_{1t}&amp;,&amp;v_{1t}\sim \mbox{IID}(0,\omega_{1}^{2})\\
+\label{eqiv4}
+y_{t}=y_{t}^{\circ}+v_{2t}&amp;,&amp;v_{2t}\sim \mbox{IID}(0,\omega_{2}^{2})
+\end{eqnarray}\]
+
+<p>and \(v_{1t}\) and \(v_{2t}\) are independent of \(x_{t}^{\circ}\), \(y_{t}^{\circ}\), and \(u_{t}^{\circ}\).</p>
+
+<p>We substitute (\ref{eqiv3}) and (\ref{eqiv4}) into (\ref{eqiv2}) and find that</p>
+
+\[\begin{eqnarray}
+\nonumber
+y_{t}&amp;=&amp;\beta_{1}+\beta_{2}(x_{t}-v_{1t})+u_{t}^{\circ}+v_{2t}\\\nonumber
+&amp;=&amp;\beta_{1}+\beta_{2}x_{t}+u_{t}^{\circ}+v_{2t}-\beta_{2}v_{1t}\\
+\label{eqiv5}
+&amp;=&amp;\beta_{1}+\beta_{2}x_{t}+u_{t}
+\end{eqnarray}\]
+
+<p>where \(u_{t}=u_{t}^{\circ}+v_{2t}-\beta_{2}v_{1t}\)</p>
+
+<p>For model (\ref{eqiv5}), the variance of error term is</p>
+
+\[\begin{eqnarray*}
+Var(u_{t})&amp;=&amp;\sigma^{2}+\textcolor{blue}{\omega_{2}^{2}}+\textcolor{red}{\beta_{2}^{2}\omega_{1}^{2}}
+\end{eqnarray*}\]
+
+<p>The effect of the measurement error in the dependent variable is simply to increase the variance of the error terms.</p>
+
+<p>The measurement error in the independent variable also increases the variance, but it has more severe consequence.</p>
+
+\[\begin{eqnarray}
+\label{eqiv6}
+E(u_{t}|x_{t})&amp;=&amp;E(u_{t}^{\circ}+v_{2t}-\beta_{2}v_{1t}|x_{t}^{\circ}+v_{1t})=\textcolor{red}{-\beta_{2}v_{1t}}
+\end{eqnarray}\]
+
+<p>and</p>
+
+\[\begin{eqnarray*}
+Cov(x_{t},u_{t})&amp;=&amp;E(x_{t}u_{t})\\
+&amp;=&amp;E(x_{t}E(u_{t}|x_{t}))\\
+&amp;=&amp;-E((x_{t}^{\circ}+v_{1t})\beta_{2}v_{1t})\\
+&amp;=&amp;-\beta_{2}\omega_{1}^{2}
+\end{eqnarray*}\]
+
+<h2 id="simultaneous-equations">Simultaneous Equations</h2>
+<p>By microeconomics, suppose \(q_{t}\) is quantity and \(p_{t}\) is price, both of which would often be in logarithms (same in our case), we have</p>
+
+\[\begin{eqnarray}
+\label{eqiv7}
+q_{t} &amp;=&amp; \gamma_{d}p_{t} + X_{t}^{d}\beta_{d} + u_{t}^{d} \\
+\label{eqiv8}
+q_{t} &amp;=&amp; \gamma_{s}p_{t} + X_{t}^{s}\beta_{d}+ u_{t}^{s} 
+\end{eqnarray}\]
+
+<p>\(X_{t}^{d}\) and \(X_{t}^{s}\) are row vectors of observations on exogenous or predetermined variables that appear, respectively, in the demand and supply functions. Equations (\ref{eqiv7}) and (\ref{eqiv8}) is called a <strong>linear simultaneous equations model</strong>. We solve these equations and get</p>
+
+\[\begin{eqnarray*}
+\left[\begin{array}{c}
+q_{t}\\
+p_{t}
+\end{array}\right]&amp;=&amp; \left[\begin{array}{cc}
+1&amp;-\gamma_{d}\\
+1&amp;-\gamma_{s}
+\end{array}\right]^{-1}
+\left(\left[\begin{array}{c}
+X_{t}^{d}\beta_{d}\\
+X_{t}^{s}\beta_{s}
+\end{array}\right]+\left[\begin{array}{c}
+u_{t}^{d}\\
+u_{t}^{s}
+\end{array}\right]\right)
+\end{eqnarray*}\]
+
+<p>It can be seen from this solution the \(p_{t}\) and \(q_{t}\) will depend on both \(u_{t}^{d}\) and \(u_{t}^{s}\), and on every exogeneous and predetermined variable that appears in either the demand function, the supply function, or both.</p>
+
+<h1 id="instrumental-variables-estimation">Instrumental Variables Estimation</h1>
+<p>We focus on the linear regression model</p>
+
+\[\begin{eqnarray}
+\label{eqiv10}
+y&amp;=&amp;X\beta+u,\ \ \ E(uu^{T})=\sigma^{2}I
+\end{eqnarray}\]
+
+<p>where at least one of the explanatory variables in the \(n\times k\) matrix \(X\) is assumed not to be predetermined with respect to the error terms.</p>
+
+<p>We can form an \(n\times k\) matrix \(W\) with typical row \(W_{t}\) such that all its elements belong to \(\Omega_{t}\). The \(k\) variables given by the \(k\) columns of \(W\) are called <strong>instrumental variables</strong>, or simply <strong>instruments</strong>. The number of instruments may exceed the number of regressors.</p>
+
+<p>Instrumental variables may be either exogenous or predetermined, and they should always include any columns of \(X\) that are exogenous or predetermined.</p>
+
+<h2 id="the-simple-iv-estimator">The Simple IV Estimator</h2>
+<p>For the linear model (\ref{eqiv10}), the moment conditions is</p>
+
+\[\begin{eqnarray}
+\label{eqiv11}
+W^{T}(y-X\beta)&amp;=&amp;0
+\end{eqnarray}\]
+
+<p>Solve equations (\ref{eqiv11}) to obtain the <strong>simple IV estimator</strong></p>
+
+\[\begin{eqnarray}
+\label{eqiv12}
+\hat{\beta}_{IV}&amp;\equiv&amp;(W^{T}X)^{-1}W^{T}y
+\end{eqnarray}\]
+
+<p>Whenever \(W_{t}\in\Omega_{t}\)</p>
+
+\[\begin{eqnarray}
+\label{eqiv13}
+E(u_{t}|W_{t})&amp;=&amp;0
+\end{eqnarray}\]
+
+<p>\(\hat{\beta}_{IV}\) is consistent and asymptotically normal under an identification condition. For asymptotical identification, this condition can be written as</p>
+
+\[\begin{eqnarray}
+\label{eqiv14}
+S_{W^{T}X}&amp;\equiv&amp;\mathop{plim} \frac{1}{n}W^{T}X
+\end{eqnarray}\]
+
+<p>is deterministic and nonsingular.</p>
+
+<p>It is easy to see that simple IV estimator is consistent.</p>
+
+\[\begin{eqnarray}
+\nonumber
+\hat{\beta}_{IV}&amp;=&amp;(W^{T}X)^{-1}W^{-1}y\\
+\nonumber
+&amp;=&amp;(W^{T}X)^{-1}W^{-1}(X\beta_{0}+u)\\
+\label{eqiv15}
+&amp;=&amp;\beta_{0}+(n^{-1}W^{T}X)^{-1}n^{-1}W^{T}u
+\end{eqnarray}\]
+
+<p>Given the assumption (\ref{eqiv14}) of asymptotic identification, \(\hat{\beta}_{IV}\) is consistent if and only if</p>
+
+\[\begin{eqnarray}
+\label{eqiv151}
+\mathop{plim} \frac{1}{n}W^{T}u&amp;=&amp;0
+\end{eqnarray}\]
+
+<p>error terms are <strong>asymptotically uncorrelated</strong> with the instruments.</p>
+
+<h2 id="efficiency-considerations">Efficiency Considerations</h2>
+<p>The asymptotic covariance matrix of \(n^{1/2}(\hat{\beta}_{IV}-\hat{\beta})\) is</p>
+
+\[\begin{eqnarray}
+\nonumber
+Var\left(\mathop{plim}_{n\to\infty}n^{1/2}(\hat{\beta}_{IV}-\hat{\beta})\right)&amp;=&amp;\sigma^{2}(S_{W^{T}X})^{-1}(S_{W^{T}W})(S_{W^{T}X}^{T})^{-1}\\\nonumber
+&amp;=&amp;\sigma^{2}\mathop{plim}_{n\to\infty}(n^{-1}W^{T}X)^{-1}n^{-1}W^{T}W(n^{-1}X^{T}W)^{-1}\\\nonumber
+&amp;=&amp;\sigma^{2}\mathop{plim}_{n\to\infty}(n^{-1}(n^{-1}X^{T}W(W^{T}W)^{-1}W^{T}X)^{-1}\\\label{eqiv17}
+&amp;=&amp;\sigma^{2}\mathop{plim}_{n\to\infty}(n^{-1}X^{T}P_{W}X)^{-1}
+\end{eqnarray}\]
+
+<h2 id="the-generalized-iv-estimator">The Generalized IV Estimator</h2>
+<p>Let \(W\) denote an \(n\times l\) matrix of instruments.</p>
+
+<ul>
+  <li>\(l&gt;k\): <strong>overidentified</strong></li>
+  <li>\(l=k\): <strong>just/exactly identified</strong></li>
+  <li>\(l&lt;k\): <strong>underidentified</strong></li>
+</ul>
+
+<p>Method: seek an \(l\times k\) matrix \(J\) such that the \(n\times k\) matrix \(WJ\) is a valid instrument matrix, where \(J\) minimizes the asymptotic covariance matrix of the estimator in the class of \(IV\) estimator obtained by instrument matrix \(WJ^{\ast}\) with arbitrary \(J^{\ast}\).</p>
+
+<p>Three requirements for matrix \(J\)</p>
+
+<ul>
+  <li>\(J\) has full column rank \(k\)</li>
+  <li>\(J\) is at least asymptotically deterministic</li>
+  <li>\(J\) is chosen to minimize the asymptotic covariance matrix of the resulting IV estimator</li>
+</ul>
+
+<p>We choose \(J\) as</p>
+
+\[\begin{eqnarray*}
+WJ&amp;=&amp;P_{W}X=W(W^{T}W)^{-1}W^{T}X\\
+J&amp;=&amp;(W^{T}W)^{-1}W^{T}X
+\end{eqnarray*}\]
+
+<p>The moment condition can be written as</p>
+
+\[\begin{eqnarray*}
+(WJ)^{T}(y-X\beta)&amp;=&amp;0\\
+X^{T}P_{W}(y-X\beta)&amp;=&amp;0
+\end{eqnarray*}\]
+
+<p>and the generalized IV (GIV) estimator is</p>
+
+\[\begin{eqnarray}
+\label{eqiv16}
+\hat{\beta}_{GIV}&amp;=&amp;(X^{T}P_{W}X)^{-1}X^{T}P_{W}y
+\end{eqnarray}\]
+
+<h2 id="asymptotic-distribution-of-iv-estimator">Asymptotic Distribution of IV Estimator</h2>
+<p>We replace \(W\) in (\ref{eqiv17}) by \(P_{W}X\), we find that</p>
+
+\[\begin{eqnarray*}
+Var\left(\mathop{plim}_{n\to\infty}n^{1/2}(\hat{\beta}_{GIV}-\hat{\beta})\right)&amp;=&amp;\sigma^{2}\mathop{plim}_{n\to\infty}(n^{-1}X^{T}P_{P_{W}X}X)^{-1}\\
+&amp;=&amp;\sigma^{2}\mathop{plim}_{n\to\infty}(n^{-1}X^{T}P_{W}X((P_{W}X)^{T}P_{W}X)^{-1}(P_{W}X)^{T}X)^{-1}\\
+&amp;=&amp;\sigma^{2}\mathop{plim}_{n\to\infty}(n^{-1}X^{T}P_{W}X(X^{T}P_{W}X)^{-1}X^{T}P_{W}X)^{-1}\\
+&amp;=&amp;\sigma^{2}\mathop{plim}_{n\to\infty}(n^{-1}X^{T}P_{W}X(X^{T})^{-1}
+\end{eqnarray*}\]
+
+<p>The asymptotic covariance matrix is unchanged if \(W\) is replaced by \(P_{W}X\).</p>
+
+<h2 id="two-stage-least-squares">Two-Stage Least Squares</h2>
+
+\[\begin{eqnarray*}
+\hat{\beta}_{GIV}&amp;=&amp;(X^{T}P_{W}X)^{-1}X^{T}P_{W}y
+\end{eqnarray*}\]
+
+<p>is commonly known as the <strong>two-stage least squares</strong>, or <strong>2SLS</strong>, estimator.</p>
+
+<ul>
+  <li><strong>Stage 1:</strong> \(X\) is regressed on \(W\)</li>
+  <li><strong>Stage 2:</strong>  The fitted values from the first-stage regressions to form the matrix \(P_{W}X\). Then the second-stage regression</li>
+</ul>
+
+\[\begin{eqnarray}
+\label{eqiv18}
+y&amp;=&amp;P_{W}X\beta+u
+\end{eqnarray}\]
+
+<p>The OLS estimate of \(\beta\) from this second-stage regression is</p>
+
+\[\begin{eqnarray*}
+\hat{\beta}_{2sls}&amp;=&amp;((P_{W}X)^{T}P_{W}X)^{-1}(P_{W}X)^{T}y\\
+&amp;=&amp;(X^{T}P_{W}X)^{-1}X^{T}P_{W}y
+\end{eqnarray*}\]
+
+<p>We should be <strong>careful about the standard error the regression and the covariance matrix of the parameter estimates</strong>.</p>
+
+<h1 id="testing-overidentifying-restrictions">Testing Overidentifying Restrictions</h1>
+<p>The <strong>degree of overidentification</strong> of an overidentified linear regression model is defined to be \(\ell-k\). Such a model incorporates \(\ell-k\) <strong>overidentifying restrictions</strong>.</p>
+
+<p>\(S(W)=S(P_{W}X,W^{\ast})\) where \(W^{\ast}\) is an \(n\times (\ell-k)\) matrix of <strong>extra instruments</strong>. The instrument exogeniety require that \(u_{t}\) has mean zero conditional on \((P_{w}X)_{t}\). \textcolor{blue}{The overidentifying restrictions require that the extra instruments should also satisfy it.} And it can always be tested.</p>
+
+<h1 id="durbin-wu-hausman-tests">Durbin-Wu-Hausman Tests</h1>
+<p>The null and alternative hypotheses for the DWH test is</p>
+
+\[\begin{eqnarray}
+\label{eqiv19}
+H_{0}&amp;:&amp;y=X\beta+u, \ u\sim \mbox{IID}(0,\sigma^{2}I),\ \ E(X^{T}u)=0\\
+H_{0}&amp;:&amp;y=X\beta+u, \ u\sim \mbox{IID}(0,\sigma^{2}I),\ \ E(W^{T}u)=0
+\end{eqnarray}\]
+
+<p>Under \(H_{1}\), the IV estimator \(\hat{\beta}_{IV}\) is consistent, but OLS estimator \(\hat{\beta}_{OLS}\) is not. Under \(H_{0}\), both are consistent. Thus, \(\mathop{plim}(\hat{\beta}_{IV}-\hat{\beta}_{OLS})\) is zero under the null hypothesis and nonzero under the alternative. <strong>DWH test is to check whether the difference is significantly different from zero in the available sample</strong>.</p>
+
+\[\begin{eqnarray*}
+\hat{\beta}_{IV}-\hat{\beta}_{OLS}&amp;=&amp;(X^{T}P_{W}X)^{-1}X^{T}P_{W}y-(X^{T}X)^{T}X^{T}y\\
+&amp;=&amp;(X^{T}P_{W}X)^{-1}(X^{T}P_{W}y-X^{T}P_{W}X(X^{T}X)^{T}X^{T}y)\\
+&amp;=&amp;(X^{T}P_{W}X)^{-1}(X^{T}P_{W}-X^{T}P_{W}X(X^{T}X)^{T}X^{T})y\\
+&amp;=&amp;(X^{T}P_{W}X)^{-1}X^{T}P_{W}(I-X(X^{T}X)^{T}X^{T})y\\
+&amp;=&amp;(X^{T}P_{W}X)^{-1}X^{T}P_{W}M_{X}y\\
+\end{eqnarray*}\]
+
+<p>The first factor is a positive definite matrix. We test whether \(X^{T}P_{W}M_{X}y\) is significantly different from zero.</p>
+
+<p>We partition the matrix of regressors \(X\)</p>
+
+\[\begin{eqnarray*}
+X&amp;=&amp;\left[\begin{array}{cc}
+Z&amp;Y
+\end{array}\right]
+\end{eqnarray*}\]
+
+<p>where the \(k_{1}\) columns of \(Z\) are included in the matrix of instruments \(W\), and \(k_{2}=k-k_{1}\) columns of \(Y\) are treated as potentially endogeneous. OLS residuals are orthogonal to all the columns of \(X\), in particular to those of \(Z\)</p>
+
+\[\begin{eqnarray*}
+Z^{T}P_{W}M_{x}y=(P_{W}Z)^{T}M_{X}y=Z^{T}M_{X}y=0
+\end{eqnarray*}\]
+
+<p>We only need to test \(Y^{T}P_{W}M_{x}y\), which will not in general be identically zero under \(H_{1}\), but should not differ from zero significantly under \(H_{1}\).</p>
+
+<p>The easiest way to test \(Y^{T}P_{W}M_{x}y\) is significantly different from zero is to use \(F\) test for the \(k_{2}\) restriction \(\delta=0\) in the OLS regression</p>
+
+\[\begin{eqnarray}
+\label{eqiv20}
+y&amp;=&amp;X\beta+P_{W}Y\delta+u
+\end{eqnarray}\]
+
+\[\begin{eqnarray*}
+\hat{\delta}&amp;=&amp;(Y^{T}P_{W}M_{X}P_{W}Y)^{-1}Y^{T}P_{W}M_{x}y
+\end{eqnarray*}\]
+
+<p>The degrees of freedom for \(F\) test is \(k_{2}\) and \(n-k-k_{2}\)</p>]]></content><author><name></name></author><category term="note" /><category term="econometics" /><summary type="html"><![CDATA[The eighth chapter of Econometric Theory and Methods]]></summary></entry><entry><title type="html">Panel Data</title><link href="https://lingboshen.github.io/blog/2022/PD/" rel="alternate" type="text/html" title="Panel Data" /><published>2022-10-23T15:12:00+00:00</published><updated>2022-10-23T15:12:00+00:00</updated><id>https://lingboshen.github.io/blog/2022/PD</id><content type="html" xml:base="https://lingboshen.github.io/blog/2022/PD/"><![CDATA[<h1 id="introduction">Introduction</h1>
+
+<p><strong>Panel data/longitudinal data/repeated measures</strong> are repeated
+observations on the same cross section observed for several time periods.</p>
+
+<p>A major advantage of panel data is increased precision in estimation,
+which is a result of an increase in the number of observations owing
+to combining or pooling several time periods of data for each individual.
+However, for valid statistical inference one needs to control for
+likely correlation of regression model errors over time for a given
+individual.</p>
+
+<p>A second attraction is the possibility of consistent estimation of
+the fixed effects model, which allows for unobserved individual heterogeneity
+that may be correlated with regressors.</p>
+
+<p>Most disciplines in applied statistics other than microeconometrics
+treat any unobserved individual heterogeneity as being distributed
+independently of the regressors. Then the effects are called random
+effects.</p>
+
+<h1 id="models-and-estimators">Models and Estimators</h1>
+
+<p>Even for linear regression, standard panel data analysis uses a much
+wider range of models and estimators than is the case with cross-section
+data.</p>
+
+<p>Obtaining correct standard errors of estimators is also more complicated
+than in the cross-section case. One needs to control for correlation
+over time in errors for a given individual, in addition to possible
+heteroskedasticity.</p>
+
+<h2 id="panel-data-models">Panel Data Models</h2>
+
+<p>A very general linear model for panel data permits the intercept and
+slope coefficients to vary over both individual and time, with</p>
+
+\[\begin{eqnarray*}
+y_{it} &amp; = &amp; \alpha_{it}+x_{it}^{\prime}\beta_{it}+u_{it}, i=1,\dots,N, t=1,\dots,T\\
+\end{eqnarray*}\]
+
+<p>where</p>
+<ul>
+  <li>\(y_{it}\): a scalar dependent</li>
+  <li>\(x_{it}\): a \(K\times1\) vector of independent variables</li>
+  <li>\(u_{it}\): a scalar disturbance term</li>
+  <li>\(i\): index individual in a cross section</li>
+  <li>\(t\): index time</li>
+</ul>
+
+<p>This model is too general and is not estimable as there are more parameters
+to estimate than observations. Further restrictions need to be placed
+on the extent to which \(\alpha_{it}\) and \(\beta_{it}\) vary
+with \(i\) and \(t\), and on the behavior of the error \(u_{it}\).</p>
+
+<h3 id="pooled-model">Pooled Model</h3>
+
+<p>The most restrictive model is a <strong>pooled model</strong> that specifies
+<strong>constant coefficients</strong>, the usual assumption for cross-section
+analysis, so that</p>
+
+\[\begin{eqnarray}
+y_{it} &amp; = &amp; \alpha+x_{it}^{\prime}\beta+u_{it}\label{eq:pd1}
+\end{eqnarray}\]
+
+<p>If this model is correctly specified and regressors are uncorrelated
+with the error then it can be consistently estimated using <strong>pooled
+OLS</strong>. The <strong>error term is likely to be correlated over time for
+a given individual</strong>, however, in which case the usual reported standard
+errors should not be used as they can be greatly downward biased</p>
+
+<h3 id="individual-and-time-dummies">Individual and Time Dummies</h3>
+
+<p>A simple variant of the model (\ref{eq:pd1}) permits <strong>intercepts
+to vary across individuals and over time while slope parameters do
+not</strong>.</p>
+
+\[\begin{eqnarray}
+y_{it} &amp; = &amp; \alpha_{i}+\gamma_{t}+x_{it}^{\prime}\beta+u_{it}\nonumber \\
+ &amp; = &amp; \sum_{j=1}^{N}\alpha_{j}d_{j,it}+\sum_{s=2}^{T}\gamma_{s}d_{s,it}+x_{it}^{\prime}\beta+u_{it}\label{eq:pd2}
+\end{eqnarray}\]
+
+<p>where</p>
+<ul>
+  <li>\(d_{j,it}\): \(N\) individual dummies equal one if \(i=j\) and equal zero otherwise</li>
+  <li>\(d_{s,it}\): \(\left(T-1 \right)\) time dummies equal one if \(t=s\) and equal zero otherwise</li>
+</ul>
+
+<p>notice that there is no intercept. If so, then one of the \(N\) individual
+dummies must be dropped.</p>
+
+<p>The model has \(N+\left(T-1\right)+dimx\) parameters that can
+be consistently estimated if both \(N\to\infty\) and \(T\to\infty\).</p>
+
+<h3 id="fixed-effects-and-random-effects-models">Fixed Effects and Random Effects Models</h3>
+
+<p>The <strong>individual-specific effects model</strong> allows each cross-sectional
+unit to have a different intercept term though all slopes are the
+same, so that</p>
+
+\[\begin{eqnarray}
+y_{it} &amp; = &amp; \alpha_{i}+x_{it}^{\prime}\beta+\varepsilon_{it}\label{eq:pd3}
+\end{eqnarray}\]
+
+<p>The \(\alpha_{i}\) are random variables that capture <strong>unobserved
+heterogeneity</strong>. We make the assumption of strong exogeneity/strict
+exogeneity</p>
+
+\[\begin{eqnarray}
+\mathbb{E}\left[\varepsilon_{it}\mid\alpha_{i},x_{it},\dots,x_{iT}\right] &amp; = &amp; 0,\quad t=1,\dots,T\label{eq:pd4}
+\end{eqnarray}\]
+
+<p>so that the error term is assumed to have mean zero conditional on
+past, current, and future values of regressors.</p>
+
+<p>One variant of the model (\ref{eq:pd3}) treats \(\alpha_{i}\) as an
+unobserved random variable that is potentially correlated with the
+observed regressors \(x_{it}\). This variant is called the <strong>fixed
+effects (FE) model</strong>as early treatments modeled these effects as parameters
+\(\alpha_{1},\dots,\alpha_{N}\) to be estimated.</p>
+
+<p>The other variant of the model (\ref{eq:pd3}) assumes that the unobservable
+individual effects \(\alpha_{i}\) are random variables that are distributed
+independently of the regressors. This model is called the <strong>random
+effect (RE) model/one-way individual-specific random effects model/random
+intercept model</strong>, which makes the additional assumptions that</p>
+
+\[\begin{eqnarray}
+\alpha_{i} &amp; \sim &amp; \left[\alpha,\sigma_{\alpha}^{2}\right]\label{eq:pd5}\\
+\varepsilon_{it} &amp; \sim &amp; \left[0,\sigma_{\varepsilon}^{2}\right]\nonumber 
+\end{eqnarray}\]
+
+<p>so that both the random effects and the error term in (\ref{eq:pd3})
+are assumed to be iid.</p>
+
+<p><strong>Equicorrelated Model</strong></p>
+
+<p>The RE model can be viewed as a specialization of the pooled model
+as the \(\alpha_{i}\) can be subsumed into the error term. Now \(u_{it}=\alpha_{i}+\varepsilon_{it}\)
+and (\ref{eq:pd5}) implies that</p>
+
+\[\begin{eqnarray}
+Cov\left[\left(\alpha_{i}+\varepsilon_{it}\right),\left(\alpha_{i}+\varepsilon_{is}\right)\right] &amp; = &amp; \begin{cases}
+\sigma_{\alpha}^{2} &amp; t\neq s\\
+\sigma_{\alpha}^{2}+\sigma_{\varepsilon}^{2} &amp; t=s
+\end{cases}\label{eq:pd8}
+\end{eqnarray}\]
+
+<p>The RE imposes the constraint that \(u_{it}\) is equicorrelated, since</p>
+
+\[\begin{eqnarray*}
+Corr\left[u_{it},u_{is}\right] &amp; = &amp; \frac{Cov\left[u_{it},u_{is}\right]}{SD\left[u_{it}\right]SD\left[u_{is}\right]}=\frac{\sigma_{\alpha}^{2}}{\sigma_{\alpha}^{2}+\sigma_{\varepsilon}^{2}}
+\end{eqnarray*}\]
+
+<p>for \(t\neq s\) does not vary with the time difference \(t-s\).</p>
+
+<p><strong>FE versus RE Models</strong></p>
+
+<p>We use notation</p>
+
+\[\begin{eqnarray*}
+y_{it} &amp; = &amp; c_{i}+x_{it}^{\prime}\beta+\varepsilon_{it}
+\end{eqnarray*}\]
+
+<p>The individual effect is a random variable in both fixed and random
+effects models. Both models assume that</p>
+
+\[\begin{eqnarray*}
+\mathbb{E}\left[y_{it}\mid c_{i},x_{it}\right] &amp; = &amp; c_{i}+x_{it}^{\prime}\beta
+\end{eqnarray*}\]
+
+<p>The individual-specific effect \(c_{i}\) is unknown and in short panels
+cannot be consistently estimated, so we cannot estimate \(\mathbb{E}\left[y_{it}\mid c_{i},x_{it}\right]\).
+Then we eliminate \(c_{i}\)</p>
+
+\[\begin{eqnarray*}
+\mathbb{E}\left[y_{it}x_{it}\right] &amp; = &amp; \mathbb{E}\left[c_{i}x_{it}\right]+x_{it}^{\prime}\beta
+\end{eqnarray*}\]
+
+<ul>
+  <li>For the RE model we assume \(\mathbb{E}\left[c_{i}x_{it}\right]=\alpha\),
+so that</li>
+</ul>
+
+\[\begin{eqnarray*}
+\mathbb{E}\left[y_{it}x_{it}\right] &amp; = &amp; \alpha+x_{it}^{\prime}\beta
+\end{eqnarray*}\]
+
+<p>and hence it is possible to identify \(\mathbb{E}\left[y_{it}x_{it}\right]\).</p>
+<ul>
+  <li>For FE model \(\mathbb{E}\left[c_{i}x_{it}\right]\) varies
+with \(x_{it}\), and it is not known how it varies, so we cannot
+identify \(\mathbb{E}\left[y_{it}x_{it}\right]\). However,
+we can estimate \(\beta\) with short panels. Thus, it is possible
+in the FE model to identify the marginal effect</li>
+</ul>
+
+\[\begin{eqnarray*}
+\beta &amp; = &amp; \frac{\partial\mathbb{E}\left[y_{it}\mid c_{i},x_{it}\right]}{\partial x_{it}}
+\end{eqnarray*}\]
+
+<p>even the conditional mean is not identified. For not time-varying
+regressors, e.g. race or gender, the marginal effect is not identified.</p>
+
+<h2 id="panel-data-estimators">Panel Data Estimators</h2>
+
+<p>A regressors \(x_{it}\) may be either <strong>time-invariant</strong>, with
+\(x_{it}=x_{i}\), for \(t=1,\dots,T\), or <strong>time-varying</strong>.</p>
+
+<h3 id="pooled-ols">Pooled OLS</h3>
+
+<p>The pooled OLS estimator is obtained by stacking the data over \(i\)
+and \(t\) into one long regression with \(NT\) observations, and estimating
+by OLS</p>
+
+\[\begin{eqnarray*}
+y_{it} &amp; = &amp; \alpha+x_{it}^{\prime}\beta+u_{it},\;i=1,\dots,N,\:t=1,\dots,T
+\end{eqnarray*}\]
+
+<p>If the model (\ref{eq:pd1}) is appropriate and \(Cov\left[u_{it},x_{it}\right]=0\)
+then either \(N\to\infty\) or \(T\to\infty\) is sufficient for consistency.</p>
+
+<h3 id="lest-squares-dummy-variable-estimator">Lest-squares Dummy Variable Estimator</h3>
+
+<p>If \(N\) is not too large, an alternative and simpler way to compute
+thw within estimator is by LSDV estimation, which directly estimates
+model (\ref{eq:pd2}) by OLS regression of \(y_{it}\) on \(x_{it}\)
+and the \(N\) individual dummy variables and yields the within estimator
+for \(\beta\).</p>
+
+<h3 id="within-estimator">Within Estimator</h3>
+
+<p>Begin with the individual-specific effects model (\ref{eq:pd3}).
+Taking the average over time yields \(\bar{y}_{i}=\alpha_{i}+\overline{x}_{i}^{\prime}\beta+\bar{\varepsilon}_{i}\).
+Subtracting this from \(y_{it}\) in model (\ref{eq:pd3}) yields the
+<strong>within model</strong></p>
+
+\[\begin{eqnarray}
+y_{it}-\bar{y}_{i} &amp; = &amp; \left(x_{it}-\bar{x}_{i}\right)^{\prime}\beta+\left(\varepsilon_{it}-\bar{\varepsilon}_{i}\right),\;i=1,\dots,N,\:t=1,\dots,T\label{eq:pd6}
+\end{eqnarray}\]
+
+<p>The <strong>within estimator</strong>is the OLS estimator in within model
+(\ref{eq:pd6}) and it yields consistent estimates of \(\beta\)
+in the fiexed effets model.</p>
+
+<p>A major limitation of within estimation is that the coefficients of
+time-invariant regressors are not identified since if \(x_{it}=x_{i}\),
+then \(\bar{x}_{i}=x_{i}\), so \(\left(x_{it}-\bar{x}_{i}\right)=0\).</p>
+
+<h3 id="between-estimator">Between Estimator</h3>
+
+<p>The between estimator in short panels instead uses just the cross-sectional
+variation. Averageing over all years yields \(\bar{y}_{i}=\alpha_{i}+\overline{x}_{it}^{\prime}\beta+\bar{\varepsilon}_{i}\),
+which can be rewritten as the <strong>between model</strong></p>
+
+\[\begin{eqnarray*}
+\bar{y}_{i} &amp; = &amp; \alpha+\overline{x}_{i}^{\prime}\beta+\left(\alpha_{i}-\alpha+\bar{\varepsilon}_{i}\right)
+\end{eqnarray*}\]
+
+<p>The <strong>between estimator</strong>is the OLS estimator from regression
+of \(\bar{y}_{i}\) on an intercept and \(\overline{x}_{i}^{\prime}\).
+It uses variation between different individuals.</p>
+
+<p>The between estimator is consistent if \(\overline{x}_{i}^{\prime}\)
+are independent of the error \(\left(\alpha_{i}-\alpha+\bar{\varepsilon}_{i}\right)\).
+For FE model, however, between estimator is inconsistent as \(\alpha_{i}\)
+is assumed to be correlated with \(x_{it}\).</p>
+
+<h3 id="first-differences-estimator">First-Differences Estimator</h3>
+
+<p>Lagging one period of model (\ref{eq:pd3}) yields \(y_{it-1}=\alpha_{i}+x_{it-1}^{\prime}\beta+\varepsilon_{it-1}\).
+Subtracting this from \(y_{it}\) yields the <strong>first-differences
+model</strong></p>
+
+\[\begin{eqnarray}
+y_{it}-y_{i,t-1} &amp; = &amp; \left(x_{it}-x_{i,t-1}\right)^{\prime}\beta+\left(\varepsilon_{it}-\varepsilon_{i,t-1}\right),\;i=1,\dots,N,\:t=1,\dots,T\label{eq:pd7}
+\end{eqnarray}\]
+
+<p>The <strong>first-differences estimator</strong>is the OLS estimator in (\ref{eq:pd7}).
+This estimator yields consistent estimates in the fixed effects model,
+though the coefficients of time-invariant regressors are not identified.</p>
+
+<h2 id="panel-robust-statistical-inference">Panel Robust Statistical Inference</h2>
+
+<p>The various panel models include error terms denoted \(u_{it}\), \(\varepsilon_{it}\)
+and \(\alpha_{i}\). It is reasonable to assume independence over \(i\).
+However, the errors are potentially</p>
+
+<ul>
+  <li><strong>serially correlated</strong>(correlated over \(t\) for given \(i\))</li>
+  <li><strong>heteroskedastic</strong></li>
+</ul>
+
+<p>we need to control these factors to get valid statistical inference.</p>
+
+<p>Panel Robust Sandwich Standard Errors}</p>
+
+<p>The panel estimators which introduced above can be obtained by OLS
+estimation of \(\theta\) in the pooled regression</p>
+
+\[\begin{eqnarray}
+\widetilde{y}_{it} &amp; = &amp; \widetilde{w}_{it}^{\prime}\theta+\widetilde{u}_{it}\label{eq:pd9}
+\end{eqnarray}\]
+
+<p>where different panel estimators correspond to different transformations
+\(\widetilde{y}_{it}\), \(\widetilde{w}_{it}\), \(\widetilde{u}_{it}\),
+\(y_{it}\), \(w_{it}^{\prime}=\left[1\,x_{it}^{\prime}\right]\)
+and \(u_{it}\). The key is that \(\widetilde{y}_{it}\) is a known function
+of only \(y_{i1},\dots,y_{iT}\), and similarly for others.</p>
+
+<p>It is convenient to stack observations over time periods for a given
+individuals, leading to</p>
+
+\[\begin{eqnarray*}
+\widetilde{y}_{i} &amp; = &amp; \widetilde{w}_{i}\theta+\widetilde{u}_{i}\\
+\end{eqnarray*}\]
+
+<p>where</p>
+<ul>
+  <li>\(\widetilde{y}_{i}\): \(T\times 1\) vector</li>
+  <li>\(\widetilde{w}_{i}\): \(T\times q\)</li>
+</ul>
+
+<p>Further stacking over the \(N\) invididuals yields</p>
+
+\[\begin{eqnarray*}
+\widetilde{y} &amp; = &amp; \widetilde{w}\theta+\widetilde{u}
+\end{eqnarray*}\]
+
+<p>The OLS estimator are therefore</p>
+
+\[\begin{eqnarray*}
+\widehat{\theta}_{OLS} &amp; = &amp; \left[\widetilde{w}^{\prime}\widetilde{w}\right]^{-1}\widetilde{w}^{\prime}\widetilde{y}\\
+ &amp; = &amp; \left[\sum_{i=1}^{N}\widetilde{w}_{i}^{\prime}\widetilde{w}_{i}\right]^{-1}\sum_{i=1}^{N}\widetilde{w}_{i}^{\prime}\widetilde{y}_{i}\\
+ &amp; = &amp; \left[\sum_{i=1}^{N}\sum_{t=1}^{T}\widetilde{w}_{it}\widetilde{w}_{it}^{\prime}\right]^{-1}\sum_{i=1}^{N}\sum_{t=1}^{T}\widetilde{w}_{it}\widetilde{y}_{it}\\
+ &amp; where\\
+\widetilde{w} &amp; : &amp; NT\times q\\
+\widetilde{w}_{i} &amp; : &amp; T\times q\\
+\widetilde{w}_{it} &amp; : &amp; 1\times q
+\end{eqnarray*}\]
+
+<p>The following matrix form equation illustrates the structure of \(\widetilde{y}=\widetilde{w}\theta+\widetilde{u}\)</p>
+
+\[\begin{eqnarray*}
+y &amp; = &amp; w\theta+u\\
+\left[\begin{array}{c}
+y_{1}=\begin{cases}
+y_{11}\\
+y_{12}\\
+\vdots\\
+y_{1T}
+\end{cases}\\
+y_{2}=\begin{cases}
+y_{21}\\
+y_{22}\\
+\vdots\\
+y_{2T}
+\end{cases}\\
+\vdots\\
+\vdots\\
+y_{N}=\begin{cases}
+y_{N1}\\
+y_{N2}\\
+\vdots\\
+y_{NT}
+\end{cases}
+\end{array}\right] &amp; =\left[\begin{array}{c}
+w_{1}=\begin{cases}
+x_{111}\;x_{112}\cdots &amp; x_{11q}=w_{11}^{\prime}\\
+x_{121}\;x_{122}\cdots &amp; x_{12q}=w_{12}^{\prime}\\
+\vdots &amp; \vdots\\
+x_{1T1}\;x_{1T2}\cdots &amp; x_{1Tq}=w_{1T}^{\prime}
+\end{cases}\\
+w_{2}=\begin{cases}
+x_{211}\;x_{212}\cdots &amp; x_{21q}=w_{21}^{\prime}\\
+x_{221}\;x_{222}\cdots &amp; x_{22q}=w_{22}^{\prime}\\
+\vdots &amp; \vdots\\
+x_{2T1}\;x_{2T2}\cdots &amp; x_{2Tq}=w_{2T}^{\prime}
+\end{cases}\\
+\vdots\\
+\vdots\\
+w_{N}=\begin{cases}
+x_{N11}\;x_{N12}\cdots &amp; x_{N1q}=w_{N1}^{\prime}\\
+x_{N21}\;x_{N22}\cdots &amp; x_{N2q}=w_{N2}^{\prime}\\
+\vdots &amp; \vdots\\
+x_{NT1}\;x_{NT2}\cdots &amp; x_{NTq}=w_{NT}^{\prime}
+\end{cases}
+\end{array}\right]\left[\begin{array}{c}
+\theta_{1}\\
+\theta_{2}\\
+\vdots\\
+\theta_{q}
+\end{array}\right]+ &amp; \left[\begin{array}{c}
+u_{1}=\begin{cases}
+u_{11}\\
+u_{12}\\
+\vdots\\
+u_{1T}
+\end{cases}\\
+u_{2}=\begin{cases}
+u_{21}\\
+u_{22}\\
+\vdots\\
+u_{2T}
+\end{cases}\\
+\vdots\\
+\vdots\\
+u_{N}=\begin{cases}
+u_{N1}\\
+u_{N2}\\
+\vdots\\
+u_{NT}
+\end{cases}
+\end{array}\right]
+\end{eqnarray*}\]
+
+<p><strong>Consistency</strong></p>
+
+<p>If the model is correctly specified then</p>
+
+\[\begin{eqnarray*}
+\widehat{\theta}_{OLS} &amp; = &amp; \theta+\left[\widetilde{w}^{\prime}\widetilde{w}\right]^{-1}\widetilde{w}^{\prime}\widetilde{u}\\
+ &amp; = &amp; \theta+\left[\sum_{i=1}^{N}\widetilde{w}_{i}^{\prime}\widetilde{w}_{i}\right]^{-1}\sum_{i=1}^{N}\widetilde{w}_{i}^{\prime}\widetilde{u}_{i}
+\end{eqnarray*}\]
+
+<p>Given independence over \(i\) the essential condition for onsistency
+is \(\mathbb{E}\left[\widetilde{w}^{\prime}\widetilde{u}\right]=0\).</p>
+
+<p>The asymptotic variance of \(\widehat{\theta}_{OLS}\) is then</p>
+
+\[\begin{eqnarray*}
+Var\left[\widehat{\theta}_{OLS}\right] &amp; = &amp; \left[\sum_{i=1}^{N}\widetilde{w}_{i}^{\prime}\widetilde{w}_{i}\right]^{-1}\sum_{i=1}^{N}\widetilde{w}_{i}^{\prime}\mathbb{E}\left[\widetilde{u}_{i}\widetilde{u}_{i}^{\prime}\mid\widetilde{w}_{i}\right]\widetilde{w}_{i}\left[\sum_{i=1}^{N}\widetilde{w}_{i}^{\prime}\widetilde{w}_{i}\right]^{-1}
+\end{eqnarray*}\]
+
+<p>given independence of errors over \(i\).</p>
+
+<p>The <strong>panel-robust estimate</strong> of the asymptotoc variance matrix
+of pooled OLS estimator is</p>
+
+\[\begin{eqnarray*}
+\widehat{Var\left[\widehat{\theta}_{OLS}\right]} &amp; = &amp; \left[\sum_{i=1}^{N}\widetilde{w}_{i}^{\prime}\widetilde{w}_{i}\right]^{-1}\sum_{i=1}^{N}\widetilde{w}_{i}^{\prime}\widehat{u}_{i}\widehat{u}_{i}^{\prime}\widetilde{w}_{i}\left[\sum_{i=1}^{N}\widetilde{w}_{i}^{\prime}\widetilde{w}_{i}\right]^{-1}\\
+ &amp; = &amp; \left[\sum_{i=1}^{N}\sum_{t=1}^{T}\widetilde{w}_{it}\widetilde{w}_{it}^{\prime}\right]^{-1}\sum_{i=1}^{N}\sum_{t=1}^{T}\sum_{s=1}^{T}\widetilde{w}_{it}\widetilde{w}_{is}^{\prime}\widehat{u}_{it}\widehat{u}_{is}\left[\sum_{i=1}^{N}\sum_{t=1}^{T}\widetilde{w}_{it}\widetilde{w}_{it}^{\prime}\right]^{-1}\\
+ &amp; where\\
+\widehat{u}_{i} &amp; = &amp; \widetilde{y}_{i}-\widetilde{w}_{i}\widehat{\theta}\\
+\widehat{u}_{it} &amp; = &amp; \widetilde{y}_{it}-\widetilde{w}_{it}^{\prime}\widehat{\theta}
+\end{eqnarray*}\]
+
+<h1 id="pooled-models">Pooled Models</h1>
+
+<h1 id="fixed-effects-model">Fixed Effects Model</h1>
+
+<h1 id="random-effects-model">Random Effects Model</h1>
+
+\[\begin{eqnarray*}
+Var\left(v\right) &amp; = &amp; \left[\begin{array}{ccccccccccccccc}
+ &amp; v_{11} &amp; v_{12} &amp; \cdots &amp; v_{1T} &amp; v_{21} &amp; v_{22} &amp; \cdots &amp; v_{2T} &amp; \cdots &amp; \cdots &amp; v_{n1} &amp; v_{n2} &amp; \cdots &amp; v_{nT}\\
+v_{11} &amp; \sigma_{\alpha}^{2}+\sigma_{\varepsilon}^{2} &amp; \sigma_{\alpha}^{2} &amp; \cdots &amp; \sigma_{\alpha}^{2}\\
+v_{12} &amp; \sigma_{\alpha}^{2} &amp; \sigma_{\alpha}^{2}+\sigma_{\varepsilon}^{2} &amp; \cdots &amp; \sigma_{\alpha}^{2}\\
+\vdots &amp; \vdots &amp; \vdots &amp; \ddots &amp; \vdots\\
+v_{1T} &amp; \sigma_{\alpha}^{2} &amp; \sigma_{\alpha}^{2} &amp; \cdots &amp; \sigma_{\alpha}^{2}+\sigma_{\varepsilon}^{2}\\
+v_{21} &amp;  &amp;  &amp;  &amp;  &amp; \sigma_{\alpha}^{2}+\sigma_{\varepsilon}^{2} &amp; \sigma_{\alpha}^{2} &amp; \cdots &amp; \sigma_{\alpha}^{2}\\
+v_{22} &amp;  &amp;  &amp;  &amp;  &amp; \sigma_{\alpha}^{2} &amp; \sigma_{\alpha}^{2}+\sigma_{\varepsilon}^{2} &amp; \cdots &amp; \sigma_{\alpha}^{2}\\
+\vdots &amp;  &amp;  &amp;  &amp;  &amp; \vdots &amp; \vdots &amp; \ddots &amp; \vdots\\
+v_{2T} &amp;  &amp;  &amp;  &amp;  &amp; \sigma_{\alpha}^{2} &amp; \sigma_{\alpha}^{2} &amp; \cdots &amp; \sigma_{\alpha}^{2}+\sigma_{\varepsilon}^{2}\\
+\vdots &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp; \ddots\\
+\vdots &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp; \ddots\\
+v_{n1} &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp; \sigma_{\alpha}^{2}+\sigma_{\varepsilon}^{2} &amp; \sigma_{\alpha}^{2} &amp; \cdots &amp; \sigma_{\alpha}^{2}\\
+v_{n2} &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp; \sigma_{\alpha}^{2} &amp; \sigma_{\alpha}^{2}+\sigma_{\varepsilon}^{2} &amp; \cdots &amp; \sigma_{\alpha}^{2}\\
+\vdots &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp; \vdots &amp; \vdots &amp; \ddots &amp; \vdots\\
+v_{nT} &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp;  &amp; \sigma_{\alpha}^{2} &amp; \sigma_{\alpha}^{2} &amp; \cdots &amp; \sigma_{\alpha}^{2}+\sigma_{\varepsilon}^{2}
+\end{array}\right]\\
+ &amp; = &amp; I_{T}\otimes\Omega
+\end{eqnarray*}\]]]></content><author><name></name></author><category term="note" /><category term="panel-data" /><category term="econometics" /><summary type="html"><![CDATA[Introduction]]></summary></entry><entry><title type="html">Time Series 1—Modelling Ecomomic Time Series</title><link href="https://lingboshen.github.io/blog/2022/TS1/" rel="alternate" type="text/html" title="Time Series 1—Modelling Ecomomic Time Series" /><published>2022-10-23T15:12:00+00:00</published><updated>2022-10-23T15:12:00+00:00</updated><id>https://lingboshen.github.io/blog/2022/TS1</id><content type="html" xml:base="https://lingboshen.github.io/blog/2022/TS1/"><![CDATA[<h1 id="data-generation-processes">Data Generation Processes</h1>
+
+<p>Let \(x_{t}\) be an \(m\times 1\) vector of economic variables generated at
+time \(t\). Such variables are typically inter0related both
+contemporaneously and across time. The collection
+\(\{x_{t},-\infty&lt; t &lt; \infty\}\) is called a vector-valued random sequence.</p>
+
+<p>The data generation process (DGP) is represented by the conditional
+density</p>
+
+<p>\begin{equation}
+D_{t}\left(x_{t}\mid\mathcal{X}_{t-1}\right)
+\end{equation}
+where
+\(\mathcal{X}_{t-1}=\sigma\left(x_{t-1},x_{t-2},x_{t-3},\cdots\right)\).
+This is a shorthand for the \(\sigma\)-field representing knowledge of the
+past history of the system. Notice that</p>
+
+<p>::: remark
+\(D_{t}\) is allowed to depend on time, because the data are not assumed
+to be stationary.
+:::</p>
+
+<h1 id="dgps-and-models">DGPs and Models</h1>
+
+<p>A dynamic econometric model is a family of functions of the data which
+are intended to mimic aspects of the DGP, either \(D_{t}\) itself or
+functions derived from \(D_{t}\) such as moments. Formally, a model is a
+family of functions</p>
+
+<p>\begin{equation}
+{M\left(x_{t},x_{t-1},x_{t-2},\cdots,d_{t};\psi\right),\psi\in\Psi},\Psi\subset\mathbb{R}^{p}
+\end{equation}</p>
+
+<p>In particular, let \(M_{D}\) be a model of complete DGP.</p>
+
+<ul>
+  <li>Parameters \(\psi\): \(p\) in number; parameters are constants that
+are common to every \(t\).</li>
+  <li>Parameter space: \(\Psi\) denotes the set of admissible parameter
+values.</li>
+  <li>The vector \(d_{t}\) represents variables, treated as
+non-stochastic, which are intended to capture the changes in the DGP
+over time.</li>
+</ul>
+
+<p>The relationship between the DGP and the model is a difficult issue. The
+axiom of correct specification is the assumption that there exists a
+model element that is identical to the corresponding function of the
+DGP. \(M_{D}\) is correctly specified if there exists
+\(\psi_{0}\in\Psi\) such that 
+\begin{equation}
+M_{D}\left(x_{t},x_{t-1},x_{t-2},\cdots,d_{t};\psi_{0}\right) = D_{t}\left(x_{t}\mid\mathcal{X}_{t-1}\right)
+\end{equation}
+In general, correct specification in practical modelling
+exercises is an implausible assumption.</p>
+
+<h1 id="sequence-properties">Sequence Properties</h1>
+
+<h2 id="stationarity">Stationarity</h2>
+
+<p>A random sequence \(\{x_{t}\}\) is said to be <em>stationary in the wide
+sense/covariance-stationary</em> if the mean, the variance and the sequence
+of \(j\)th-order autocovariances for \(j&gt;0\) are all independent of \(t\). It
+is said to be <em>stationary in the strict sense</em> if for every \(k&gt;0\), the
+joint distributions of all collections
+\(\left(x_{t},x_{t+1},x_{t+2},\cdots,x_{t+k}\right)\) do not depend in
+any way on \(t\).</p>
+
+<h2 id="mixing">Mixing</h2>
+
+<p>In a mixing sequence the realization of the sequence at time \(t\)
+contains no information about the realization at either \(t-j\) or \(t+j\),
+when \(j\) is sufficiently large. The mixing property ensures that points
+in the sequence appear randomly sampled when they are far enough apart.</p>
+
+<p>::: remark
+Stationarity and mixing are quite distinct properties.
+:::</p>
+
+<h2 id="ergodicity">Ergodicity</h2>
+
+<p>A stationary sequence having the property that a random event involving
+every member of the sequence always has probability either 0 or 1 is
+called <em>ergodic</em>.</p>
+
+<p>::: theorem
+If \(\{x_{t}\}\) is a stationary ergodic sequence, and \(E(x_1)\) exists,
+\(\bar{x}_{n}\to E(x_{1})\) with probability 1.
+:::</p>]]></content><author><name></name></author><category term="note" /><category term="time-series" /><category term="econometics" /><summary type="html"><![CDATA[Data Generation Processes]]></summary></entry><entry><title type="html">Time Series 2—Difference Equation</title><link href="https://lingboshen.github.io/blog/2022/TS2/" rel="alternate" type="text/html" title="Time Series 2—Difference Equation" /><published>2022-10-23T15:12:00+00:00</published><updated>2022-10-23T15:12:00+00:00</updated><id>https://lingboshen.github.io/blog/2022/TS2</id><content type="html" xml:base="https://lingboshen.github.io/blog/2022/TS2/"><![CDATA[<h1 id="the-difference-operator">The Difference Operator</h1>
+
+<p>First differences</p>
+
+\[\begin{eqnarray*}
+\Delta y_{t} &amp;\equiv&amp; y_{t}-y_{t-1}
+\end{eqnarray*}\]
+
+<p>Second differences</p>
+
+\[\begin{eqnarray*}
+\Delta^{2}y_{t}&amp;\equiv&amp;\Delta(\Delta y_{t})\\
+            &amp;\equiv&amp;\Delta y_{t}-\Delta y_{t-1}\\
+            &amp;\equiv&amp;(y_{t}-y_{t-1})-(y_{t-1}-y_{t-2})\\
+            &amp;\equiv&amp;y_{t}-2y_{t-1}+y_{t-2}\\
+\end{eqnarray*}\]
+
+<h1 id="difference-equations-and-solutions">Difference Equations and Solutions</h1>
+
+<ul>
+  <li>
+    <p>\(n\)-th order linear difference equation (with constant coefficient)
+\(\begin{eqnarray*}
+y_{t}&amp;=&amp;a_{0}+\sum_{i=1}^{n}a_{i}y_{t-i}+X_{t}
+\end{eqnarray*}\) 
+where \(X_{t}\) is called forcing process. It includes
+stochastic terms, time trends, and other variables, but not
+constants and not \(y\), nor lagged values of \(y\).</p>
+  </li>
+  <li>
+    <p>difference form</p>
+
+\[\begin{eqnarray*}
+y_{t}&amp;=&amp;a_{0}+\sum_{i=1}^{n}a_{i}y_{t-i}+X_{t}\\
+y_{t}&amp;=&amp;a_{0}+a_{1}y_{t-1}+\sum_{i=2}^{n}a_{i}y_{t-i}+X_{t}\\
+y_{t}-y_{t-1}&amp;=&amp;a_{0}+a_{1}y_{t-1}-y_{t-1}+\sum_{i=2}^{n}a_{i}y_{t-i}+X_{t}\\
+\Delta y_{t}&amp;=&amp;a_{0}+(a_{1}-1)y_{t-1}+\sum_{i=2}^{n}a_{i}y_{t-i}+X_{t}\\
+\end{eqnarray*}\]
+  </li>
+  <li>
+    <p>A solution of a D.E shows \(y_{t}\) equal to a function of the x and
+t, plus perhaps some initial conditions for y, but not lagged values
+of y. Solutions are not unique.</p>
+  </li>
+</ul>
+
+<h2 id="iteration">Iteration</h2>
+
+<p>Consider following first-order linear difference equation:</p>
+
+\[\begin{eqnarray*}
+y_{t}&amp;=&amp;a_{0}+a_{1}y_{t-1}+\varepsilon_{t}, \ \ y_{0}=y_{0}
+\end{eqnarray*}\]
+
+<p>We know</p>
+
+\[\begin{eqnarray*}
+y_{1}&amp;=&amp;a_{0}+a_{1}y_{0}+\varepsilon_{1}\\
+y_{2}&amp;=&amp;a_{0}+a_{1}y_{1}+\varepsilon_{2}\\
+	&amp;=&amp;a_{0}+a_{1}(a_{0}+a_{1}y_{0}+\varepsilon_{1})+\varepsilon_{2}\\
+	&amp;=&amp;a_{0}+a_{1}a_{0}+a_{1}^{2}y_{0}+a_{1}\varepsilon_{1}+\varepsilon_{2}\\
+y_{3}&amp;=&amp;a_{0}+a_{1}y_{2}+\varepsilon_{3}\\
+	&amp;=&amp;a_{0}+a_{1}(a_{0}+a_{1}a_{0}+a_{1}^{2}y_{0}+a_{1}\varepsilon_{1}+\varepsilon_{2})+\varepsilon_{3}\\
+	&amp;=&amp;a_{0}+a_{1}a_{0}+a_{1}^{2}a_{0}+a_{1}^{3}y_{0}+a_{1}^{2}\varepsilon_{1}+a_{1}\varepsilon_{2}+\varepsilon_{3}\\
+	&amp;\vdots&amp;\\
+y_{t}&amp;=&amp;a_{0}(1+a_{1}+a_{1}^{2}+\cdots+a_{1}^{t-1})+a_{1}^{t}y_{0}+a_{1}^{t-1}\varepsilon_{1}+a_{1}^{t-2}\varepsilon_{2}+\cdots+\varepsilon_{t}\\
+&amp;=&amp;a_{0}\sum_{i=0}^{t-1}(a_{1})^{i}+a_{1}^{t}y_{0}+\sum_{i=0}^{t-1}(a_{1})^{i}\varepsilon_{t-i}
+\end{eqnarray*}\]
+
+<h1 id="lag-operators">Lag Operators</h1>
+<p>The lag operator \(L\) is defined 
+\(\begin{eqnarray*}
+L^{i}y_{t}&amp;\equiv&amp; y_{t-i}
+\end{eqnarray*}\) 
+Lag operator has following properties</p>
+
+<ol>
+  <li>
+\[L(\beta y_{t})=\beta\cdot Ly_{t}\]
+  </li>
+  <li>
+\[L(x_{t}+y_{t})=Lx_{t}+Ly_{t}\]
+  </li>
+  <li>
+\[(L^{i}+L^{j})y_{t}=L^{i}y_{t}+L^{j}y_{t}\]
+  </li>
+  <li>
+\[L^{i}L^{j}y_{t}=L^{i+j}y_{t}=y_{t-i-j}\]
+  </li>
+  <li>
+\[L^{-i}y_{t}=y_{t+i}\]
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>For $$\left</td>
+          <td>a \right</td>
+          <td>&lt;1$$</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+\[\begin{eqnarray*}
+    \sum_{i=0}^{+\infty}(a^{i}L^{i})y_{t}&amp;=&amp;\frac{y_{t}}{1-aL}
+    \end{eqnarray*}\]
+
+<ol>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>For $$\left</td>
+          <td>a \right</td>
+          <td>&gt;1$$</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+\[\begin{eqnarray*}
+    \sum_{i=0}^{+\infty}(a^{-i}L^{-i})y_{t}&amp;=&amp;\frac{-aLy_{t}}{1-aL}
+    \end{eqnarray*}\]
+
+<h2 id="first-order-difference-equations">First-Order Difference Equations</h2>
+<p>Consider the first-order difference equation below</p>
+
+\[\begin{eqnarray*}
+y_{t}&amp;=&amp;\phi y_{t-1}+w_{t}
+\end{eqnarray*}\]
+
+<p>which can be written using the lag operator as</p>
+
+\[\begin{eqnarray*}
+y_{t}&amp;=&amp;\phi Ly_{t}+w_{t}\\
+y_{t}-\phi Ly_{t}&amp;=&amp;w_{t}\\
+(1-\phi L)y_{t}&amp;=&amp;w_{t}\\
+(1+\phi L+\phi^{2}L^{2}+\cdots+\phi^{t}L^{t})(1-\phi L)y_{t}&amp;=&amp;(1+\phi L+\phi^{2}L^{2}+\cdots+\phi^{t}L^{t})w_{t}\\
+\end{eqnarray*}\]
+
+<p>The compound operator on the left-hand side is</p>
+
+\[\begin{eqnarray*}
+&amp;&amp;(1+\phi L+\phi^{2}L^{2}+\cdots+\phi^{t}L^{t})(1-\phi L)\\
+&amp;=&amp;(1+\phi L+\phi^{2}L^{2}+\cdots+\phi^{t}L^{t})\\
+&amp;-&amp;(\phi L+\phi^{2}L^{2}+\cdots+\phi^{t}L^{t}+\phi^{t+1}L^{t+1})\\
+&amp;=&amp;1-\phi^{t+1}L^{t+1}
+\end{eqnarray*}\]
+
+<p>Then we have</p>
+
+\[\begin{eqnarray*}
+(1-\phi^{t+1}L^{t+1})y_{t}&amp;=&amp;(1+\phi L+\phi^{2}L^{2}+\cdots+\phi^{t}L^{t})w_{t}\\
+y_{t}-\phi^{t+1}y_{-1}&amp;=&amp;w_{t}+\phi w_{t-1}+\phi^{2}w_{t-2}+\cdots+\phi^{t}w_{0}\\
+y_{t}&amp;=&amp;\phi^{t+1}y_{-1}+w_{t}+\phi w_{t-1}+\phi^{2}w_{t-2}+\cdots+\phi^{t}w_{0}
+\end{eqnarray*}\]
+
+<p>We have known that</p>
+
+\[\begin{eqnarray*}
+(1+\phi L+\phi^{2}L^{2}+\cdots+\phi^{t}L^{t})(1-\phi L)y_{t}&amp;=&amp;y_{t}-\phi^{t+1}y_{-1}
+\end{eqnarray*}\]
+
+<p>if \(|\phi|&lt;1\) and \(y_{-1}\) is finite, \(\phi^{t+1}y_{-1}\)
+will become negligible as \(t\) becomes large</p>
+
+\[\begin{eqnarray*}
+(1+\phi L+\phi^{2}L^{2}+\cdots+\phi^{t}L^{t})(1-\phi L)y_{t}&amp;\cong&amp;y_{t}
+\end{eqnarray*}\]
+
+<p>A sequence \(\{y_{t}\}_{t=-\infty}^{\infty}\) is bounded
+if there exists a finite number \(\bar{y}\) such that \(|y_{t}|&lt;\bar{y}\)
+for all \(t\). When \(|\phi|&lt;1\) and when we are considering applying an
+operator to a bounded sequence, we have</p>
+
+\[\begin{eqnarray*}
+(1-\phi L)^{-1}&amp;=&amp;\lim_{t\to\infty} (1+\phi L+\phi^{2}L^{2}+\cdots+\phi^{t}L^{t})
+\end{eqnarray*}\]
+
+<p>So we have</p>
+
+\[\begin{eqnarray*}
+(1+\phi L+\phi^{2}L^{2}+\cdots+\phi^{t}L^{t})(1-\phi L)y_{t}&amp;\cong&amp;y_{t}\\
+(1-\phi L)^{-1}(1-\phi L)y_{t}&amp;=&amp;y_{t}
+\end{eqnarray*}\]
+
+<p>By this definition, we have</p>
+
+\[\begin{eqnarray*}
+(1-\phi L)y_{t}&amp;=&amp;w_{t}\\
+y_{t}&amp;=&amp;(1-\phi L)^{-1}w_{t}\\
+&amp;=&amp;w_{t}+\phi w_{-1}+\phi^{2}w_{t-2}+\phi^{3}w_{t-3}+\cdots
+\end{eqnarray*}\]
+
+<h2 id="second-order-difference-equations">Second-Order Difference Equations</h2>
+
+<p>Consider the second-order difference equation</p>
+
+\[\begin{eqnarray*}
+y_{t}&amp;=&amp;\phi_{1}y_{t-1}+\phi_{2}y_{t-2}+w_{t}\\
+(1-\phi_{1}L-\phi_{2}L^{2})y_{t}&amp;=&amp;w_{t}
+\end{eqnarray*}\]
+
+<p>The operator in the left-hand side contains a
+second-order polynomial in the lag operator $L$. Suppose we have</p>
+
+\[\begin{eqnarray*}
+(1-\phi_{1}L-\phi_{2}L^{2})&amp;=&amp;(1-\lambda_{1}L)(1-\lambda_{2}L)\\
+&amp;=&amp;(1-[\lambda_{1}+\lambda_{2}]L+\lambda_{1}\lambda_{2}L^{2})
+\end{eqnarray*}\]
+
+<p>Given values for \(\phi_{1}\) and \(\phi_{2}\), we seek
+numbers \(\lambda_{1}\) and \(\lambda_{2}\) such that</p>
+
+\[\begin{eqnarray*}
+\begin{cases}
+\lambda_{1}+\lambda_{2}=\phi_{1}\\
+\lambda_{1}\lambda_{2}=-\phi_{2}
+\end{cases}
+\end{eqnarray*}\]
+
+<p>Two methods to consider this problem.</p>
+
+<ul>
+  <li>
+    <p>Method 1</p>
+
+\[\begin{eqnarray*}
+(1-\phi_{1}z-\phi_{2}z^{2})&amp;=&amp;(1-\lambda_{1}z)(1-\lambda_{2}z)
+\end{eqnarray*}\]
+
+    <p>when \(z=\lambda_{1}^{-1}\) or \(z=\lambda_{2}^{-1}\),
+the right hand side is equal to 0. When</p>
+
+\[\begin{eqnarray*}
+\begin{cases}
+z_{1}=\frac{\phi_{1}-\sqrt{\phi_{1}^{2}+4\phi_{2}}}{-2\phi_{2}}\\
+\\
+z_{2}=\frac{\phi_{1}+\sqrt{\phi_{1}^{2}+4\phi_{2}}}{-2\phi_{2}}
+\end{cases}
+\end{eqnarray*}\]
+
+    <p>the left-hand side is equal to 0 as well. So if we let</p>
+
+\[\begin{eqnarray*}
+\begin{cases}
+\lambda_{1}^{-1}=z_{1}=\frac{\phi_{1}-\sqrt{\phi_{1}^{2}+4\phi_{2}}}{-2\phi_{2}}\\
+\\
+\lambda_{2}^{-1}=z_{2}=\frac{\phi_{1}+\sqrt{\phi_{1}^{2}+4\phi_{2}}}{-2\phi_{2}}
+\end{cases}
+\end{eqnarray*}\]
+
+    <p>both sides are equal to 0.</p>
+  </li>
+  <li>
+    <p>Method 2
+It is easy to find that \(\lambda_{1}\) and \(\lambda_{2}\) are roots of
+equation</p>
+
+\[\begin{eqnarray*}
+\lambda^{2}-\phi_{1}\lambda-\phi_{2}&amp;=&amp;0
+\end{eqnarray*}\]
+
+    <p>so</p>
+
+\[\begin{eqnarray*}
+\begin{cases}
+\lambda_{1}^{-1}=\frac{\phi_{1}+\sqrt{\phi_{1}^{2}+4\phi_{2}}}{2}\\
+\\
+\lambda_{2}^{-1}=\frac{\phi_{1}-\sqrt{\phi_{1}^{2}+4\phi_{2}}}{2}
+\end{cases}
+\end{eqnarray*}\]
+  </li>
+</ul>
+
+<p>When we have \(\lambda_{1}\) and \(\lambda_{2}\) by the above two methods,
+we have</p>
+
+\[\begin{eqnarray*}
+(1-\lambda_{1}L)(1-\lambda_{2}L)y_{t}&amp;=&amp;w_{t}\\
+y_{t}&amp;=&amp;(1-\lambda_{1}L)^{-1}(1-\lambda_{2}L)^{-1}w_{t}
+\end{eqnarray*}\]
+
+<p>If \(\lambda_{1}\neq \lambda_{2}\), we define</p>
+
+\[\begin{eqnarray*}
+&amp;&amp;(\lambda_{1}-\lambda_{2})^{-1}\left(\frac{\lambda_{1}}{1-\lambda_{1}L}-\frac{\lambda_{2}}{1-\lambda_{2}L}\right)\\
+&amp;=&amp;(\lambda_{1}-\lambda_{2})^{-1}\frac{\lambda_{1}(1-\lambda_{2}L)-\lambda_{2}(1-\lambda_{1}L)}{(1-\lambda_{1}L)(1-\lambda_{2}L)}\\
+&amp;=&amp;(\lambda_{1}-\lambda_{2})^{-1}\frac{\lambda_{1}-\lambda_{2}}{(1-\lambda_{1}L)(1-\lambda_{2}L)}\\
+&amp;=&amp;\frac{1}{(1-\lambda_{1}L)(1-\lambda_{2}L)}
+\end{eqnarray*}\]
+
+<p>So we have</p>
+
+\[\begin{eqnarray*}
+y_{t}&amp;=&amp;(1-\lambda_{1}L)^{-1}(1-\lambda_{2}L)^{-1}w_{t}\\
+&amp;=&amp;(\lambda_{1}-\lambda_{2})^{-1}\left(\frac{\lambda_{1}}{1-\lambda_{1}L}-\frac{\lambda_{2}}{1-\lambda_{2}L}\right)w_{t}\\
+&amp;=&amp;\frac{\lambda_{1}}{\lambda_{1}-\lambda_{2}}\frac{1}{1-\lambda_{1}L}w_{t}-\frac{\lambda_{2}}{\lambda_{1}-\lambda_{2}}\frac{1}{1-\lambda_{2}L}w_{t}\\
+&amp;=&amp;\frac{\lambda_{1}}{\lambda_{1}-\lambda_{2}}(1+\lambda_{1}L+\lambda_{1}^{2}L^{2}+\lambda_{1}^{3}L^{3}+\cdots)w_{t}\\
+&amp;-&amp;\frac{\lambda_{2}}{\lambda_{1}-\lambda_{2}}(1+\lambda_{2}L+\lambda_{2}^{2}L^{2}+\lambda_{2}^{3}L^{3}+\cdots)w_{t}\\
+&amp;=&amp;\frac{\lambda_{1}}{\lambda_{1}-\lambda_{2}}(w_{t}+\lambda_{1}w_{t-1}+\lambda_{1}^{2}w_{t-2}+\lambda_{1}^{3}w_{t-3}+\cdots)\\
+&amp;-&amp;\frac{\lambda_{2}}{\lambda_{1}-\lambda_{2}}(w_{t}+\lambda_{2}w_{t-1}+\lambda_{2}^{2}w_{t-2}+\lambda_{2}^{3}w_{t-3}+\cdots)\\
+&amp;=&amp;(c_{1}+c_{2})w_{t}+(c_{1}\lambda_{1}+c_{2}\lambda_{2})w_{t-1}+(c_{1}\lambda_{1}^{2}+c_{2}\lambda_{2}^{2})w_{t-2}+\cdots
+\end{eqnarray*}\]
+
+<p>where \(c_{1}=\lambda_{1}/(\lambda_{1}-\lambda_{2})\) and
+\(c_{2}=-\lambda_{2}/(\lambda_{1}-\lambda_{2})\).</p>]]></content><author><name></name></author><category term="note" /><category term="time-series" /><category term="econometics" /><summary type="html"><![CDATA[The Difference Operator]]></summary></entry></feed>

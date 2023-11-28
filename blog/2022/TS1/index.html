@@ -2,7 +2,7 @@
 <html lang="en">
 
   <!-- Head -->
-  <head><meta http-equiv="refresh" content="3; url=https://lingboshen.github.io/" />        
+  <head>        
     <!-- Metadata, OpenGraph and Schema.org -->
     
 
@@ -10,9 +10,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Lingbo  Shen | Page not found</title>
+    <title>Lingbo  Shen | Time Series 1&mdash;Modelling Ecomomic Time Series</title>
     <meta name="author" content="Lingbo  Shen" />
-    <meta name="description" content="Looks like there has been a mistake. Nothing exists here." />
+    <meta name="description" content="A simple, whitespace theme for academics. Based on [*folio](https://github.com/bogoli/-folio) design.
+" />
     <meta name="keywords" content="jekyll, jekyll-theme, academic-website, portfolio-website" />
 
     <meta name="google-site-verification" content="45VVBTzbWI9CPrT2UtIdTtL6imAnvMgtV1VttR2zNGI" />
@@ -32,7 +33,7 @@
     <!-- Styles -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22></text></svg>">
     <link rel="stylesheet" href="/assets/css/main.css">
-    <link rel="canonical" href="https://lingboshen.github.io/404.html">
+    <link rel="canonical" href="https://lingboshen.github.io/blog/2022/TS1/">
 
     <!-- Dark Mode -->
     <script src="/assets/js/theme.js"></script>
@@ -82,7 +83,7 @@
               </li>
 
               <!-- Blog -->
-              <li class="nav-item ">
+              <li class="nav-item active">
                 <a class="nav-link" href="/blog/">Blog</a>
               </li>
 
@@ -101,20 +102,122 @@
 
     <!-- Content -->
     <div class="container mt-5">
-      <!-- page.html -->
-        <div class="post">
+      <!-- _layouts/post.html -->
 
-          <header class="post-header">
-            <h1 class="post-title">Page not found</h1>
-            <p class="post-description">Looks like there has been a mistake. Nothing exists here.</p>
-          </header>
+<div class="post">
 
-          <article>
-            <p>You will be redirected to the main page within 3 seconds. If not redirected, please click <a href="https://lingboshen.github.io/">here</a>.</p>
+  <header class="post-header">
+    <h1 class="post-title">Time Series 1—Modelling Ecomomic Time Series</h1>
+    <p class="post-meta">October 23, 2022</p>
+    <p class="post-tags">
+      <a href="/blog/2022"> <i class="fas fa-calendar fa-sm"></i> 2022 </a>
+        ·  
+        <a href="/blog/tag/note">
+          <i class="fas fa-hashtag fa-sm"></i> note</a>  
+          <a href="/blog/tag/time-series">
+          <i class="fas fa-hashtag fa-sm"></i> time-series</a>  
+          <a href="/blog/tag/econometics">
+          <i class="fas fa-hashtag fa-sm"></i> econometics</a>  
+          
 
-          </article>
+    </p>
+  </header>
 
-        </div>
+  <article class="post-content">
+    <h1 id="data-generation-processes">Data Generation Processes</h1>
+
+<p>Let \(x_{t}\) be an \(m\times 1\) vector of economic variables generated at
+time \(t\). Such variables are typically inter0related both
+contemporaneously and across time. The collection
+\(\{x_{t},-\infty&lt; t &lt; \infty\}\) is called a vector-valued random sequence.</p>
+
+<p>The data generation process (DGP) is represented by the conditional
+density</p>
+
+<p>\begin{equation}
+D_{t}\left(x_{t}\mid\mathcal{X}_{t-1}\right)
+\end{equation}
+where
+\(\mathcal{X}_{t-1}=\sigma\left(x_{t-1},x_{t-2},x_{t-3},\cdots\right)\).
+This is a shorthand for the \(\sigma\)-field representing knowledge of the
+past history of the system. Notice that</p>
+
+<p>::: remark
+\(D_{t}\) is allowed to depend on time, because the data are not assumed
+to be stationary.
+:::</p>
+
+<h1 id="dgps-and-models">DGPs and Models</h1>
+
+<p>A dynamic econometric model is a family of functions of the data which
+are intended to mimic aspects of the DGP, either \(D_{t}\) itself or
+functions derived from \(D_{t}\) such as moments. Formally, a model is a
+family of functions</p>
+
+<p>\begin{equation}
+{M\left(x_{t},x_{t-1},x_{t-2},\cdots,d_{t};\psi\right),\psi\in\Psi},\Psi\subset\mathbb{R}^{p}
+\end{equation}</p>
+
+<p>In particular, let \(M_{D}\) be a model of complete DGP.</p>
+
+<ul>
+  <li>Parameters \(\psi\): \(p\) in number; parameters are constants that
+are common to every \(t\).</li>
+  <li>Parameter space: \(\Psi\) denotes the set of admissible parameter
+values.</li>
+  <li>The vector \(d_{t}\) represents variables, treated as
+non-stochastic, which are intended to capture the changes in the DGP
+over time.</li>
+</ul>
+
+<p>The relationship between the DGP and the model is a difficult issue. The
+axiom of correct specification is the assumption that there exists a
+model element that is identical to the corresponding function of the
+DGP. \(M_{D}\) is correctly specified if there exists
+\(\psi_{0}\in\Psi\) such that 
+\begin{equation}
+M_{D}\left(x_{t},x_{t-1},x_{t-2},\cdots,d_{t};\psi_{0}\right) = D_{t}\left(x_{t}\mid\mathcal{X}_{t-1}\right)
+\end{equation}
+In general, correct specification in practical modelling
+exercises is an implausible assumption.</p>
+
+<h1 id="sequence-properties">Sequence Properties</h1>
+
+<h2 id="stationarity">Stationarity</h2>
+
+<p>A random sequence \(\{x_{t}\}\) is said to be <em>stationary in the wide
+sense/covariance-stationary</em> if the mean, the variance and the sequence
+of \(j\)th-order autocovariances for \(j&gt;0\) are all independent of \(t\). It
+is said to be <em>stationary in the strict sense</em> if for every \(k&gt;0\), the
+joint distributions of all collections
+\(\left(x_{t},x_{t+1},x_{t+2},\cdots,x_{t+k}\right)\) do not depend in
+any way on \(t\).</p>
+
+<h2 id="mixing">Mixing</h2>
+
+<p>In a mixing sequence the realization of the sequence at time \(t\)
+contains no information about the realization at either \(t-j\) or \(t+j\),
+when \(j\) is sufficiently large. The mixing property ensures that points
+in the sequence appear randomly sampled when they are far enough apart.</p>
+
+<p>::: remark
+Stationarity and mixing are quite distinct properties.
+:::</p>
+
+<h2 id="ergodicity">Ergodicity</h2>
+
+<p>A stationary sequence having the property that a random event involving
+every member of the sequence always has probability either 0 or 1 is
+called <em>ergodic</em>.</p>
+
+<p>::: theorem
+If \(\{x_{t}\}\) is a stationary ergodic sequence, and \(E(x_1)\) exists,
+\(\bar{x}_{n}\to E(x_{1})\) with probability 1.
+:::</p>
+
+  </article>
+
+</div>
 
     </div>
 

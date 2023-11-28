@@ -2,7 +2,7 @@
 <html lang="en">
 
   <!-- Head -->
-  <head><meta http-equiv="refresh" content="3; url=https://lingboshen.github.io/" />        
+  <head>        
     <!-- Metadata, OpenGraph and Schema.org -->
     
 
@@ -10,9 +10,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Lingbo  Shen | Page not found</title>
+    <title>Lingbo  Shen | Davidson and MacKinnon Chapter 3&mdash;The Statistical Properties of Ordinary Least Squares</title>
     <meta name="author" content="Lingbo  Shen" />
-    <meta name="description" content="Looks like there has been a mistake. Nothing exists here." />
+    <meta name="description" content="The third chapter of Econometric Theory and Methods" />
     <meta name="keywords" content="jekyll, jekyll-theme, academic-website, portfolio-website" />
 
     <meta name="google-site-verification" content="45VVBTzbWI9CPrT2UtIdTtL6imAnvMgtV1VttR2zNGI" />
@@ -32,7 +32,7 @@
     <!-- Styles -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22></text></svg>">
     <link rel="stylesheet" href="/assets/css/main.css">
-    <link rel="canonical" href="https://lingboshen.github.io/404.html">
+    <link rel="canonical" href="https://lingboshen.github.io/blog/2022/DMCh3/">
 
     <!-- Dark Mode -->
     <script src="/assets/js/theme.js"></script>
@@ -82,7 +82,7 @@
               </li>
 
               <!-- Blog -->
-              <li class="nav-item ">
+              <li class="nav-item active">
                 <a class="nav-link" href="/blog/">Blog</a>
               </li>
 
@@ -101,20 +101,191 @@
 
     <!-- Content -->
     <div class="container mt-5">
-      <!-- page.html -->
-        <div class="post">
+      <!-- _layouts/post.html -->
 
-          <header class="post-header">
-            <h1 class="post-title">Page not found</h1>
-            <p class="post-description">Looks like there has been a mistake. Nothing exists here.</p>
-          </header>
+<div class="post">
 
-          <article>
-            <p>You will be redirected to the main page within 3 seconds. If not redirected, please click <a href="https://lingboshen.github.io/">here</a>.</p>
+  <header class="post-header">
+    <h1 class="post-title">Davidson and MacKinnon Chapter 3—The Statistical Properties of Ordinary Least Squares</h1>
+    <p class="post-meta">October 23, 2022</p>
+    <p class="post-tags">
+      <a href="/blog/2022"> <i class="fas fa-calendar fa-sm"></i> 2022 </a>
+        ·  
+        <a href="/blog/tag/note">
+          <i class="fas fa-hashtag fa-sm"></i> note</a>  
+          <a href="/blog/tag/econometics">
+          <i class="fas fa-hashtag fa-sm"></i> econometics</a>  
+          
 
-          </article>
+    </p>
+  </header>
 
-        </div>
+  <article class="post-content">
+    <h1 id="introduction">Introduction</h1>
+
+\[\begin{eqnarray}
+\label{eqo1}
+y=X\beta+u&amp;,&amp; u\sim \mbox{IID}(0,\sigma^{2}I)
+\end{eqnarray}\]
+
+<p>where \(y\) and \(u\) are \(n\)-vectors, \(X\) is an \(n\times k\) matrix, and \(\beta\) is a \(k\)-vector.</p>
+
+<p>And the OLS estimator is</p>
+
+\[\begin{eqnarray}
+\label{eqo2}
+\hat{\beta}&amp;=&amp;(X^{T}X)^{-1}X^{T}y
+\end{eqnarray}\]
+
+<h1 id="are-ols-estimator-unbiased">Are OLS Estimator Unbiased?</h1>
+
+\[\begin{eqnarray}
+\nonumber
+\hat{\beta}&amp;=&amp;(X^{T}X)^{-1}X^{T}(X\beta+u)\\
+\label{eqo3}
+&amp;=&amp;\beta+(X^{T}X)^{-1}X^{T}u
+\end{eqnarray}\]
+
+<p><strong>Assumption</strong>:</p>
+
+\[E(X|u)=0\]
+
+<p>Take conditional expectation with respect to (\ref{eqo3}), then it becomes</p>
+
+\[\begin{eqnarray}
+\nonumber
+E(\hat{\beta}|X)&amp;=&amp;\beta+E[(X^{T}X)^{-1}X^{T}u|X]\\\nonumber
+&amp;=&amp;\beta+(X^{T}X)^{-1}X^{T}E(u|X)\\
+\label{eqo4}
+&amp;=&amp;\beta
+\end{eqnarray}\]
+
+<p>By Law of Iterated Expectations, we have</p>
+
+\[\begin{eqnarray}
+\label{eqo5}
+E(\hat{\beta})&amp;=&amp;E\left(E(\hat{\beta}|X)\right)=E(\beta)=\beta
+\end{eqnarray}\]
+
+<p>The Assumption 1 maybe too strong for <strong>time-series data</strong>. We can make following assumption</p>
+
+\[\begin{eqnarray}
+\label{eqo6}
+E(u_{t}|X_{t})&amp;=&amp;0
+\end{eqnarray}\]
+
+<p>We refer (\ref{eqo6}) as a <strong>predeterminedness</strong> condition.</p>
+
+<h1 id="are-ols-estimator-consistent">Are OLS Estimator Consistent</h1>
+<p>If the sample size is large enough, the estimate will be close to the true value.</p>
+
+<p>Probability Limits</p>
+
+\[\begin{eqnarray}
+\label{eqo7}
+\mathop{plim}_{n\to\infty} a(y^{n})&amp;=&amp;a_{0}\\
+\label{eqo8}
+\lim_{n\to\infty}\Pr\left(||a(y^{n})-a_{0}||&lt;\varepsilon\right)&amp;=&amp;1
+\end{eqnarray}\]
+
+<p><strong>Law of large numbers (LLN)</strong>: suppose that \(\bar{x}\) is the sample mean of \(x_{t}\), \(t=1,\dots, n\), a sequence of random variables, each with expectation \(\mu\). Then provided the \(x_{t}\) are independent, a law of large numbers would state that</p>
+
+\[\begin{eqnarray}
+\label{eqo9}
+\mathop{plim}_{n\to\infty}\bar{x}&amp;=&amp;\mathop{plim}_{n\to\infty}\frac{1}{n}\sum_{t=1}^{n}x_{t}=\mu
+\end{eqnarray}\]
+
+<p>\(\bar{x}\) has a nonstochastic \mathop{plim} which is equal to the common expectation of each of the \(x_{t}\).</p>
+
+<p>OLS is consistent</p>
+
+<p><strong>Assumption</strong>: \(\mathop{plim}_{n\to\infty}\frac{1}{n}X^{T}X=S_{X^{T}X}\)</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>
+<strong>Assumption</strong>: $$E(u_{t}</td>
+      <td>x_{t})=0$$</td>
+    </tr>
+  </tbody>
+</table>
+
+\[\begin{eqnarray}
+\nonumber
+\mathop{plim}_{n\to\infty}\hat{\beta}&amp;=&amp;\mathop{plim}_{n\to\infty}\left(\beta+(X^{T}X)^{-1}X^{T}u\right)\\\nonumber
+&amp;=&amp;\beta+\mathop{plim}_{n\to\infty}(\frac{1}{n}X^{T}X)^{-1}+\mathop{plim}_{n\to\infty}\frac{1}{n}X^{T}u\\\nonumber
+&amp;=&amp;\beta+S_{X^{T}X}^{-1}\mathop{plim}_{n\to\infty}\frac{1}{n}\sum_{t=1}^{n} X_{t}^{T}u_{t} \\\nonumber
+&amp;=&amp;\beta+S_{X^{T}X}^{-1} E(X_{t}^{T}u_{t}) \\\nonumber
+&amp;=&amp;\beta+S_{X^{T}X}^{-1} E(E(X_{t}^{T}u_{t})|X_{t}) \\\nonumber
+&amp;=&amp;\beta+S_{X^{T}X}^{-1} E(X_{t}^{T}E(u_{t})|X_{t}) \\
+\label{eqo10}
+&amp;=&amp;\beta
+\end{eqnarray}\]
+
+<h1 id="the-covariance-matrix-of-the-ols-estimator">The Covariance Matrix of the OLS Estimator</h1>
+<p>The full covariance matrix \(Var(b)\) can be expressed by</p>
+
+\[\begin{eqnarray}
+\label{eqo11}
+Var(b)&amp;=&amp;E\left(\left(b-E(b)\right)\left(b-E(b)\right)^{T}\right)
+\end{eqnarray}\]
+
+<p>\(Var(b)\) is symmetric and positive semidefinite.</p>
+
+<h2 id="the-ols-covariance-matrix">The OLS Covariance Matrix</h2>
+<p>If the error terms are IID, and have the same variance \(\sigma^{2}\), and the covariance of any pair of them is zero.</p>
+
+\[\begin{eqnarray}
+\label{eqo12}
+Var(u)&amp;=&amp;E(uu^{T})=\sigma^{2}I
+\end{eqnarray}\]
+
+<p>If we assume that \(X\) is exogenous,</p>
+
+\[\begin{eqnarray*}
+E((\hat{\beta}-\beta)(\hat{\beta}-\beta)^{T}|X)&amp;=&amp;E((X^{T}X)^{-1}X^{T}u)(X^{T}X)^{-1}X^{T}u)^{T}|X)\\
+&amp;=&amp;E((X^{T}X)^{-1}X^{T}uu^{T}X(X^{T}X)^{-1}|X)\\
+&amp;=&amp;(X^{T}X)^{-1}X^{T}X(X^{T}X)^{-1}\sigma^{2}I\\
+&amp;=&amp;\sigma^{2}(X^{T}X)^{-1}
+\end{eqnarray*}\]
+
+<p>Linear Functions of Parameter Estimates</p>
+
+\[\begin{eqnarray*}
+Var(\omega^{T}\hat{\beta})&amp;=&amp;\omega^{T}Var(\hat{\beta})\omega\\
+&amp;=&amp;\omega^{T}\left(\sigma^{2}(X^{T}X)^{-1}\right)\omega\\
+\end{eqnarray*}\]
+
+<p>Estimating the Variance of the Error Terms</p>
+
+\[\begin{eqnarray}
+\label{eqo13}
+s^{2}&amp;=&amp;\frac{1}{n-k}\sum_{t=1}^{n}\hat{u}_{t}^{2}
+\end{eqnarray}\]
+
+<p>We obtain an unbiased estimate of \(Var(\hat{\beta})\)</p>
+
+\[\begin{eqnarray}
+\label{eqo14}
+Var(\hat{\beta})&amp;=&amp;s^{2}(X^{T}X)^{-1}=\left(\frac{1}{n-k}\sum_{t=1}^{n}\hat{u}_{t}^{2}\right)(X^{T}X)^{-1}
+\end{eqnarray}\]
+
+<h1 id="efficiency-of-the-ols-estimator">Efficiency of the OLS Estimator</h1>
+<p><strong>Gauss-Markov Theorem</strong>: If it is assumed that \(E(u|X)=0\) and \(E(uu^{T})=\sigma^{2}I\) in the linear regression model, then the OLS estimator \(\hat{\beta}\) is more efficient than any other linear unbiased estimator \(\tilde{\beta}\), in sense that \(Var(\tilde{\beta})-Var(\hat{\beta})\) is a positive semidefinite matrix.</p>
+
+<h1 id="goodness-of-fit">Goodness of Fit</h1>
+<p><strong>Adjusted \(R^{2}\)</strong></p>
+
+\[\begin{eqnarray}
+\label{eqo15}
+\bar{R}_{2}&amp;=&amp;1-\frac{\frac{1}{n-k}\sum_{t=1}^{n}\hat{u}_{t}^{2}}{\frac{1}{n-1}\sum_{t=1}^{n}(y_{t}-\bar{y})^{2}}=1-\frac{\frac{1}{n-k}y^{T}M_{X}y}{\frac{1}{n-1}y^{T}M_{\iota}y}
+\end{eqnarray}\]
+
+
+  </article>
+
+</div>
 
     </div>
 

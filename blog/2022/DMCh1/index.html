@@ -2,7 +2,7 @@
 <html lang="en">
 
   <!-- Head -->
-  <head><meta http-equiv="refresh" content="3; url=https://lingboshen.github.io/" />        
+  <head>        
     <!-- Metadata, OpenGraph and Schema.org -->
     
 
@@ -10,9 +10,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Lingbo  Shen | Page not found</title>
+    <title>Lingbo  Shen | Davidson and MacKinnon Chapter 1&mdash;Regression Models</title>
     <meta name="author" content="Lingbo  Shen" />
-    <meta name="description" content="Looks like there has been a mistake. Nothing exists here." />
+    <meta name="description" content="The first chapter of Econometric Theory and Methods" />
     <meta name="keywords" content="jekyll, jekyll-theme, academic-website, portfolio-website" />
 
     <meta name="google-site-verification" content="45VVBTzbWI9CPrT2UtIdTtL6imAnvMgtV1VttR2zNGI" />
@@ -32,7 +32,7 @@
     <!-- Styles -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22></text></svg>">
     <link rel="stylesheet" href="/assets/css/main.css">
-    <link rel="canonical" href="https://lingboshen.github.io/404.html">
+    <link rel="canonical" href="https://lingboshen.github.io/blog/2022/DMCh1/">
 
     <!-- Dark Mode -->
     <script src="/assets/js/theme.js"></script>
@@ -82,7 +82,7 @@
               </li>
 
               <!-- Blog -->
-              <li class="nav-item ">
+              <li class="nav-item active">
                 <a class="nav-link" href="/blog/">Blog</a>
               </li>
 
@@ -101,20 +101,202 @@
 
     <!-- Content -->
     <div class="container mt-5">
-      <!-- page.html -->
-        <div class="post">
+      <!-- _layouts/post.html -->
 
-          <header class="post-header">
-            <h1 class="post-title">Page not found</h1>
-            <p class="post-description">Looks like there has been a mistake. Nothing exists here.</p>
-          </header>
+<div class="post">
 
-          <article>
-            <p>You will be redirected to the main page within 3 seconds. If not redirected, please click <a href="https://lingboshen.github.io/">here</a>.</p>
+  <header class="post-header">
+    <h1 class="post-title">Davidson and MacKinnon Chapter 1—Regression Models</h1>
+    <p class="post-meta">October 21, 2022</p>
+    <p class="post-tags">
+      <a href="/blog/2022"> <i class="fas fa-calendar fa-sm"></i> 2022 </a>
+        ·  
+        <a href="/blog/tag/note">
+          <i class="fas fa-hashtag fa-sm"></i> note</a>  
+          <a href="/blog/tag/econometics">
+          <i class="fas fa-hashtag fa-sm"></i> econometics</a>  
+          
 
-          </article>
+    </p>
+  </header>
 
-        </div>
+  <article class="post-content">
+    <ol>
+  <li>
+    <p>A <strong>data-generating process</strong>, or <strong>DGP</strong> is simply the mechanism
+that actually generated the data. A key feature of a DGP is that it
+constitutes a <strong>complete specification</strong>. Enough information is
+provided for the DGP to be simulated on a computer. A <strong>model</strong> is
+defined as a set of data-generating processes.</p>
+
+    <p>A model is <strong>misspecified</strong> if the DGP does not belong to the model
+under study.</p>
+  </li>
+  <li>Simple linear regression model:
+\begin{equation}
+\label{eq:dmch1-regmodel}
+   	y_{t}=\beta_{1}+\beta_{2}X_{t}+u_{t}
+\end{equation}
+    <ul>
+      <li>
+        <p>\(t\): index the <strong>observations</strong> of a <strong>sample</strong></p>
+      </li>
+      <li>
+        <p>\(n\): total number of observations, i.e., <strong>sample size</strong></p>
+      </li>
+      <li>
+        <p>\(y_{t}\): <strong>dependent variable</strong> for observation \(t\)</p>
+      </li>
+      <li>
+        <p>\(X_{t}\): an observation on a single <strong>expalnatory variable</strong>, or
+<strong>independent variable</strong></p>
+      </li>
+      <li>
+        <p>\(\beta_{1},\beta_{2}\): two unknown <strong>parameters</strong></p>
+      </li>
+      <li>
+        <p>\(\beta_{1}\): <strong>constant</strong> or <strong>intercept</strong></p>
+      </li>
+      <li>
+        <p>\(\beta_{2}\): <strong>slope coefficient</strong></p>
+      </li>
+      <li>
+        <p>\(u_{t}\): the unknown <strong>error term</strong></p>
+      </li>
+      <li>
+        <p>\(\beta_{1}+\beta_{2}X_{t}\): <strong>regression function</strong></p>
+      </li>
+      <li>
+        <p>\(\Omega_{t}\): <strong>information set</strong> includes variables that
+potential explantatry variables. Specifying a regression model
+is deciding which of the variables that belong to \(\Omega_{t}\)
+should be included in the model.</p>
+      </li>
+    </ul>
+
+    <ol>
+      <li>
+        <p>Try to explain the observed values of the dependent variables in
+terms of those of the explanatory variable.</p>
+      </li>
+      <li>
+        <p>\(u_{t}\) is assumed to be a <strong>random variable</strong>. Its expectation
+value is zero whatever the value of \(X_{t}\) to <strong>identify</strong> the
+unknown parameters. Actually we are assuming that on average the
+effects of the neglected determinants tend to cancel out.</p>
+      </li>
+      <li>
+        <p>We never say that the effect of \(u_t\) is necessarily small. Even
+if the proportion is large, this model is still useful if it
+allows us to see how \(y_t\) is related to the observed variables
+\(X_t\).</p>
+      </li>
+      <li>
+        <p><strong>How to estimate and test hypothesis about the parameters?</strong></p>
+      </li>
+      <li>
+        <p>A strong assumption about \(u_t\) is IID. The \(u_{t}\) will suffer
+<strong>serial correlation</strong> or <strong>heteroskedasticity</strong>.</p>
+      </li>
+    </ol>
+  </li>
+  <li>Matrix form of a simple linear regression model 
+Matrix form of a simple linear regression model</li>
+</ol>
+
+\[\begin{eqnarray}
+\nonumber
+y_{1}&amp;=&amp;\beta_{1}+\beta_{2}X_{1}+u_{1}\\\nonumber
+y_{2}&amp;=&amp;\beta_{1}+\beta_{2}X_{2}+u_{2}\\\label{eqm1}
+&amp;\vdots&amp;\\\nonumber
+y_{n}&amp;=&amp;\beta_{1}+\beta_{2}X_{n}+u_{n}
+\end{eqnarray}\]
+
+<p>Let \(y\) denote an \(n\)-vector, \(u\) an \(n\)-vector, \(X\) an \(n\times 2\) matrix, and \(\beta\) a \(2\)-vector.</p>
+
+\[\begin{eqnarray*}
+y=\left[\begin{array}{c}
+y_{1}\\
+y_{2}\\
+\vdots\\
+y_{n}
+\end{array}\right],
+u=\left[\begin{array}{c}
+u_{1}\\
+u_{2}\\
+\vdots\\
+u_{n}
+\end{array}\right],
+X=\left[\begin{array}{cc}
+1&amp;X_{1}\\
+1&amp;X_{2}\\
+\vdots&amp;\vdots\\
+1&amp;X_{n}
+\end{array}\right]&amp;\mbox{,and}&amp;
+\beta=\left[\begin{array}{c}
+\beta_{1}\\
+\beta_{2}\\
+\end{array}\right]
+\end{eqnarray*}\]
+
+<p>Equations (\ref{eqm1}) can be rewritten as</p>
+
+<p>\(\begin{eqnarray}
+\label{eqm2}
+y&amp;=&amp;X\beta+u
+\end{eqnarray}\)
+    - <strong>regressors</strong>: separate columns of the matrix \(X\)
+    - <strong>regressand</strong>: column vector \(y\)</p>
+
+<ol>
+  <li>
+    <p>Multivariable linear regression model We have \(k\) regressors and
+\(\beta\) now is \(k\)-vector</p>
+
+\[\begin{eqnarray}
+y=\left[\begin{array}{c}
+y_{1}\\
+y_{2}\\
+\vdots\\
+y_{n}
+\end{array}\right],
+u=\left[\begin{array}{c}
+u_{1}\\
+u_{2}\\
+\vdots\\
+u_{n}
+\end{array}\right],
+X=\left[\begin{array}{cccc}
+X_{11}&amp;X_{12}&amp;\cdots&amp;X_{1k}\\
+X_{21}&amp;X_{22}&amp;\cdots&amp;X_{2k}\\
+\vdots&amp;\vdots&amp;&amp;\vdots\\
+X_{n1}&amp;X_{n2}&amp;\cdots&amp;X_{nk}
+\end{array}\right]&amp;\mbox{,and}&amp;
+\beta=\left[\begin{array}{c}
+\beta_{1}\\
+\beta_{2}\\
+\vdots\\
+\beta_{k}
+\end{array}\right]
+\end{eqnarray}\]
+
+    <p>The model is 
+\begin{equation}
+y=X\beta+u
+\end{equation}</p>
+
+    <p>A typical row of this equation is 
+\begin{equation}
+\label{eq:dmch1-regmodelrow}
+y_{t}=X_{t}\beta+u_{t}=\sum_{i=1}^{k}\beta_{i}X_{ti}+u_{t}
+\end{equation}
+where \(X_{t}\) is the \(t^{th}\) row of \(X\).</p>
+  </li>
+</ol>
+
+  </article>
+
+</div>
 
     </div>
 

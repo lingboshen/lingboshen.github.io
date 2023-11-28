@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <!-- Head -->
+  <head>        
+    <!-- Metadata, OpenGraph and Schema.org -->
+    
+
+    <!-- Standard metadata -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Lingbo  Shen | Davidson and MacKinnon Chapter 6&mdash;Confidence Intervals</title>
+    <meta name="author" content="Lingbo  Shen" />
+    <meta name="description" content="The sixth chapter of Econometric Theory and Methods" />
+    <meta name="keywords" content="jekyll, jekyll-theme, academic-website, portfolio-website" />
+
+    <meta name="google-site-verification" content="45VVBTzbWI9CPrT2UtIdTtL6imAnvMgtV1VttR2zNGI" />
+    
+    <!-- Bootstrap & MDB -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" integrity="sha512-MoRNloxbStBcD8z3M/2BmnT+rg4IsMxPkXaGh2zD6LGNNFE80W3onsAhRcMAMrSoyWL9xD7Ert0men7vR8LUZg==" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/css/mdb.min.css" integrity="sha512-RO38pBRxYH3SoOprtPTD86JFOclM51/XTIdEPh5j8sj4tp8jmQIx26twG52UaLi//hQldfrh7e51WzP9wuP32Q==" crossorigin="anonymous" />
+
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"  integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.0/css/academicons.min.css" integrity="sha512-W4yqoT1+8NLkinBLBZko+dFB2ZbHsYLDdr50VElllRcNt2Q4/GSs6u71UHKxB7S6JEMCp5Ve4xjh3eGQl/HRvg==" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Material+Icons">
+
+    <!-- Code Syntax Highlighting -->
+    <link rel="stylesheet" href="https://gitcdn.link/repo/jwarby/jekyll-pygments-themes/master/github.css" />
+
+    <!-- Styles -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22></text></svg>">
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="canonical" href="https://lingboshen.github.io/blog/2022/DMCh6/">
+
+    <!-- Dark Mode -->
+    <script src="/assets/js/theme.js"></script>
+    <script src="/assets/js/dark_mode.js"></script>
+  </head>
+
+  <!-- Body -->
+  <body class="fixed-top-nav">
+
+    <!-- Header -->
+    <header>
+
+      <!-- Nav Bar -->
+      <nav id="navbar" class="navbar navbar-light navbar-expand-sm fixed-top">
+        <div class="container">
+          <a class="navbar-brand title font-weight-lighter" href="https://lingboshen.github.io/"><span class="font-weight-bold">Lingbo</span>   Shen</a>
+          <!-- Navbar Toggle -->
+          <button class="navbar-toggler collapsed ml-auto" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar top-bar"></span>
+            <span class="icon-bar middle-bar"></span>
+            <span class="icon-bar bottom-bar"></span>
+          </button>
+
+          <div class="collapse navbar-collapse text-right" id="navbarNav">
+            <ul class="navbar-nav ml-auto flex-nowrap">
+
+              <!-- About -->
+              <li class="nav-item ">
+                <a class="nav-link" href="/">Home</a>
+              </li>
+              
+
+              <!-- Other pages -->
+              <li class="nav-item ">
+                <a class="nav-link" href="/cv/">CV</a>
+              </li>
+              <li class="nav-item ">
+                <a class="nav-link" href="/publications/">Research</a>
+              </li>
+              <li class="nav-item ">
+                <a class="nav-link" href="/teaching/">Teaching</a>
+              </li>
+<!-- Chinese -->
+              <li class="nav-item ">
+                <a class="nav-link" href="/chinese/">Chinese/中文</a>
+              </li>
+
+              <!-- Blog -->
+              <li class="nav-item active">
+                <a class="nav-link" href="/blog/">Blog</a>
+              </li>
+
+              <!-- Toogle theme mode -->
+              <div class="toggle-container">
+                <a id="light-toggle">
+                  <i class="fas fa-moon"></i>
+                  <i class="fas fa-sun"></i>
+                </a>
+              </div>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Content -->
+    <div class="container mt-5">
+      <!-- _layouts/post.html -->
+
+<div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Davidson and MacKinnon Chapter 6—Confidence Intervals</h1>
+    <p class="post-meta">October 23, 2022</p>
+    <p class="post-tags">
+      <a href="/blog/2022"> <i class="fas fa-calendar fa-sm"></i> 2022 </a>
+        ·  
+        <a href="/blog/tag/note">
+          <i class="fas fa-hashtag fa-sm"></i> note</a>  
+          <a href="/blog/tag/econometics">
+          <i class="fas fa-hashtag fa-sm"></i> econometics</a>  
+          
+
+    </p>
+  </header>
+
+  <article class="post-content">
+    <h1 id="introduction">Introduction</h1>
+<p>Once we are confident that a model is correctly specified and incorporates whatever restrictions are appropriate, we often want to make inferences about the values of some of the parameters that appear in the model. It is usually more convenient to construct <strong>confidence intervals</strong> for the individual parameters of specific interest.</p>
+
+<p>By definition, a confidence interval is an interval of the real line that contains all values \(\theta_{0}\) for which the hypothesis that \(\theta = \theta_{0}\) is not rejected by the appropriate test in the family. For level \(\alpha\), a confidence interval so obtained is said to be at \(1-\alpha\) confidence interval, or to be at <strong>confidence level</strong> \(1-\alpha\).</p>
+
+<p>Unlike the parameters we are trying to make inferences about, confidence intervals are random. Every different sample that we draw from the same DGP will yield a different confidence interval.</p>
+
+<p>The probability that the random interval will include, or cover, the true value of the parameter is called the <strong>coverage probability</strong>, or just the <strong>coverage</strong>, of the interval.</p>
+
+<h1 id="exact-and-asymptotic-confidence-intervals">Exact and Asymptotic Confidence Intervals</h1>
+<p>A confidence interval for some scalar parameter \(\theta\) consists of all values \(\theta_{0}\) for which the hypothesis \(\theta = \theta_{0}\) cannot be rejected at some specified level \(\alpha\). Thus, as we will see in a moment, we can construct a confidence interval by <em>inverting</em> a test statistic.</p>
+
+<p>Let us denote the test statistic for the hypothesis that \(\theta = \theta_{0}\) by the random variable \(\tau(y,\theta_{0})\). Here \(y\) denotes the sample used to compute the particular realization of the statistic.</p>
+
+<p>If we write the critical value as \(c_{\alpha}\), then for any \(\theta_{0}\), we have by the definition of \(c_{\alpha}\) that</p>
+
+\[\begin{eqnarray}
+\label{eq5.1}
+\Pr_{\theta_{0}}(\tau(y,\theta_{0})\leq c_{\alpha})&amp;=&amp;1-\alpha
+\end{eqnarray}\]
+
+<p>For \(\theta_{0}\) to belong to the confidence interval obtained by inverting the family of test statistics \(\tau(y,\theta_{0})\), it is necessary and sufficient that</p>
+
+\[\begin{eqnarray}
+\label{eq5.2}
+\tau(y,\theta_{0})&amp;\leq&amp; c_{\alpha}
+\end{eqnarray}\]
+
+<p>Thus the limits of the confidence interval can be found by solving the equation for \(\theta\)</p>
+
+\[\begin{eqnarray}
+\label{eq5.3}
+\tau(y,\theta_{0})&amp;=&amp; c_{\alpha}
+\end{eqnarray}\]
+
+<p>This equation normally has two solutions: upper limit \(\theta_{u}\) and lower limit \(\theta_{l}\).</p>
+
+<p>If \(c_{\alpha}\) is an exact critical value for the test statistic \(\tau(y,\theta_{0})\) at level \(\alpha\), then the confidence interval \([\theta_{l}, \theta_{u}]\) constructed in this way will have coverage \(1-\alpha\), as desired.</p>
+
+<h2 id="quantiles">Quantiles</h2>
+<p>The \(\alpha\) <strong>quantile</strong> of \(F\), \(q_{\alpha}\), satisfies the equation</p>
+
+\[\begin{eqnarray*}
+F(q_{\alpha})&amp;=&amp;\alpha
+\end{eqnarray*}\]
+
+<p>The 0.5 quantile of a distribution is often called the <strong>median</strong>.</p>
+
+<h2 id="asymptotic-confidence-intervals">Asymptotic Confidence Intervals</h2>
+<p>Let us suppose that</p>
+
+\[\begin{eqnarray}
+\label{eq5.4}
+\tau(y,\theta_{0})&amp;=&amp;\left(\frac{\hat{\theta}-\theta_{0}}{s_{\theta}}\right)^{2}
+\end{eqnarray}\]
+
+<p>Thus \(\tau(y,\theta_{0})\) is the square of the \(t\) statistic for the null hypothesis that \(\theta=\theta_{0}\). If \(\hat{\theta}\) were an OLS estimate of a regression coefficient, then under some conditions, the test statistic defined in (\ref{eq5.4}) would be asymptotically distributed as \(\chi^{2}(1)\) under the null hypothesis.</p>
+
+<p>For the test statistic (\ref{eq5.4}), equation (\ref{eq5.3}) becomes</p>
+
+\[\begin{eqnarray}
+\nonumber
+\left(\frac{\hat{\theta}-\theta_{0}}{s_{\theta}}\right)^{2}&amp;=&amp;c_{\alpha}\\
+\label{eq5.5}
+|\hat{\theta}-\theta_{0}|&amp;=&amp;s_{\theta}c_{\alpha}^{1/2}\\
+\nonumber
+\theta&amp;=&amp;\hat{\theta}\pm s_{\theta}c_{\alpha}^{1/2}
+\end{eqnarray}\]
+
+<p>So the asymptotic \(1-\alpha\) confidence interval for \(\theta\) is</p>
+
+\[\begin{eqnarray}
+\label{eq5.6}
+\Big[\hat{\theta}- s_{\theta}c_{\alpha}^{1/2}&amp;,&amp;\hat{\theta}+ s_{\theta}c_{\alpha}^{1/2}\Big]
+\end{eqnarray}\]
+
+<h2 id="asymmetric-confidence-intervals">Asymmetric Confidence Intervals</h2>
+<p>The confidence interval (\ref{eq5.6}) is a symmetric one, because \(\theta_{l}\) is as far below \(\hat{\theta}\) as \(\theta_{u}\) is above it. Not all confidence intervals are symmetric.</p>
+
+<p>It is possible to construct confidence intervals based on one-tailed tests. Such an interval will be open all the way out to infinity in one direction.</p>
+
+<h2 id="p-values-and-asymmetric-distributions">\(P\) Values and Asymmetric Distributions</h2>
+<p>\(P\) value is defined, as usual, as the smallest level for which the test rejects.</p>
+
+<p>The \(P\) value associated with a statistic \(\tau\) should be</p>
+
+\[\begin{eqnarray*}
+\text{$P$-value}&amp;=&amp;
+\begin{cases}
+2F(\tau) &amp;  \tau \text{is in the lower tail} \\
+2(1-F(\tau)) &amp; \tau \text{is in the upper tail} \\
+\end{cases}
+\end{eqnarray*}\]
+
+<p>In complete generality, we have the \(P\) value is</p>
+
+\[\begin{eqnarray}
+\label{eq5.7}
+p(\tau)&amp;=&amp;2\min (F(\tau), 1-F(\tau))
+\end{eqnarray}\]
+
+<h2 id="exact-confidence-intervals-for-regression-coefficients">Exact Confidence Intervals for Regression Coefficients</h2>
+<p>The \(t\) statistic for the hypothesis that \(\beta_{2} = \beta_{20}\) for any particular value \(\beta_{20}\) can be written as</p>
+
+\[\begin{eqnarray}
+\label{eq5.8}
+\frac{\hat{\beta}_{2}-\beta_{20}}{s_{2}}
+\end{eqnarray}\]
+
+<p>the \(t\) statistic (\ref{eq5.8}) has the \(t(n-k)\) distribution, and so</p>
+
+\[\begin{eqnarray}
+\label{eq5.9}
+\Pr\left(t_{\alpha/2}\leq \frac{\hat{\beta}_{2}-\beta_{20}}{s_{2}}\leq t_{1-(\alpha/2)}\right)&amp;=&amp;1-\alpha
+\end{eqnarray}\]
+
+<p>where \(t_{\alpha/2}\) denote the \(\alpha/2\) quantiles of \(t(n-k)\) distribution.</p>
+
+<p>Therefore, the confidence interval is</p>
+
+\[\begin{eqnarray}
+\label{eq5.10}
+\Big[\hat{\beta}_{2}-s_{2}t_{1-(\alpha/2)}&amp;,&amp;\hat{\beta}_{2}-s_{2}t_{\alpha/2}\Big]\\
+\label{eq5.11}
+\Big[\hat{\beta}_{2}-s_{2}t_{1-(\alpha/2)}&amp;,&amp;\hat{\beta}_{2}+t_{1-(\alpha/2)}\Big]
+\end{eqnarray}\]
+
+<h1 id="confidence-regions">Confidence Regions</h1>
+<p>Suppose that we have a \(k\)-vector of parameter estimates \(\hat{\theta}\), of which the covariance matrix \(Var(\hat{\theta})\) can be estimated by \(\widehat{Var}(\hat{\theta})\). Then, the statistic</p>
+
+\[\begin{eqnarray}
+\label{eq5.12}
+(\hat{\theta}-\theta_{0})^{T}\left(\widehat{Var}(\hat{\theta})\right)^{-1}(\hat{\theta}-\theta_{0})
+\end{eqnarray}\]
+
+<p>can be used to test the joint null hypothesis that \(\theta=\theta_{0}\). (\ref{eq5.12}) is asymptotically distributed as \(\chi^{2}(k)\) under the null hypothesis.</p>
+
+<h2 id="asymptotic-normality-and-root-n-consistency">Asymptotic Normality and Root-\(n\) Consistency</h2>
+<p>We introduce <strong>asymptotic normality</strong> for linear regression models.</p>
+
+<p>The DGP is</p>
+
+\[\begin{eqnarray}
+\label{eq5.13}
+y&amp;=&amp;X\beta_{0}+u,\ \  u\sim IID(0, \sigma_{0}^{2}I)
+\end{eqnarray}\]
+
+<p>The random vector \(v=n^{-1/2}X^{T}u\) follows the asymptotic normal distribution, with mean \(0\) and covariance matrix \(\sigma_{0}^{2}S_{X^{T}X}\), where \(S_{X^{T}X}\) is the plim of \(n^{-1}X^{T}X\) as \(n\to\infty\).</p>
+
+<p>For the DGP (\ref{eq5.13}), we have</p>
+
+\[\begin{eqnarray}
+\label{eq5.14}
+\hat{\beta}-\beta_{0}&amp;=&amp;(X^{T}X)^{-1}X^{T}u
+\end{eqnarray}\]
+
+<p>We know under fairly weak condition, \(\hat{\beta}\) will be consistent, i.e. (\ref{eq5.14}) tends to a limit of \(0\) as \(n\to\infty\). Thus it would appear that asymptotic theory has nothing to say about limiting variances for consistent estimators.</p>
+
+<p>However, we can introduce \(n^{1/2}\) to correct.</p>
+
+\[\begin{eqnarray*}
+n^{1/2}(\hat{\beta}-\beta_{0})&amp;=&amp;\left(\frac{1}{n}X^{T}X\right)^{-1}n^{-1/2}X^{T}u
+\end{eqnarray*}\]
+
+<p>The first term of right-hand side tends to \(S^{-1}_{X^{T}X}\) as \(n\to\infty\), and the second factor (\(v\)) tends to random vector distributed as \(N(0,\sigma_{0}^{2}S_{X^{T}X})\). Because \(S_{X^{T}X}\) is deterministic, we find that, asymptotically,</p>
+
+\[\begin{eqnarray*}
+Var(n^{1/2}(\hat{\beta}-\beta_{0}))&amp;=&amp;\sigma^{2}_{0}S^{-1}_{X^{T}X}S_{X^{T}X}S^{-1}_{X^{T}X}=\sigma_{0}^{2}S^{-1}_{X^{T}X}
+\end{eqnarray*}\]
+
+<p>and</p>
+
+\[\begin{eqnarray}
+\label{eq5.15}
+n^{1/2}(\hat{\beta}-\beta_{0})&amp;\sim_{a}&amp;N(0,\sigma_{0}^{2}S^{-1}_{X^{T}X})
+\end{eqnarray}\]
+
+<h1 id="heteroskedasticity-consistent-covariance-matrices">Heteroskedasticity-Consistent Covariance Matrices</h1>
+<p>We focus on the linear regression model with exogenous regressors,</p>
+
+\[\begin{eqnarray}
+\label{eq5.5.1}
+y&amp;=&amp;X\beta+u,\ \ E(u)=0,\ \ E(uu^{T})=\Omega
+\end{eqnarray}\]
+
+<p>where \(\Omega\), the error covariance matrix, is an \(n\times n\) matrix with \(t^{th}\) diagonal element equal to \(\omega_{t}^{2}\) and all the off-diagonal elements equal to 0. These error terms are said to be <strong>heteroskedastic</strong>, or exhibit <strong>heteroskedasticity</strong>.</p>
+
+<p>The covariance matrix of OLS estimator \(\hat{\beta}\) is equal to</p>
+
+\[\begin{eqnarray}
+\nonumber
+E\left((\hat{\beta}-\beta)(\hat{\beta}-\beta)^{T}\right)&amp;=&amp;(X^{T}X)^{-1}X^{T}E(uu^{T})X(X^{T}X)^{-1}\\
+\label{eq5.5.2}
+&amp;=&amp;(X^{T}X)^{-1}X^{T}\Omega X(X^{T}X)^{-1}
+\end{eqnarray}\]
+
+<p>This form of covariance matrix is often called a <strong>sandwich covariance matrix</strong>.</p>
+
+<p>Usually we do not know \(\omega_{t}^{2}\). Since there are \(n\) of them, we cannot hope to estimate the \(\omega_{t}^{2}\) consistently without making additional assumptions.</p>
+
+<p>We find that</p>
+
+\[\begin{eqnarray}
+\label{eq5.10.3}
+Avar(n^{1/2}(\hat{\beta}-\beta))&amp;=&amp;\lim_{n\to\infty}\left(\frac{1}{n}X^{T}X\right)^{-1}\lim_{n\to\infty}\left(\frac{1}{n}X^{T}\Omega X\right)\lim_{n\to\infty}\left(\frac{1}{n}X^{T}X\right)^{-1}
+\end{eqnarray}\]
+
+<p>Assuming \(\mathop{plim} \frac{1}{n}X^{T}X=S_{X^{T}X}\), factor \(\lim\left(\frac{1}{n}X^{T}X\right)^{-1}\) tends to a finite, deterministic, positive definite matrix \((S_{X^{T}X})^{-1}\).</p>
+
+<p>White (1980) showed that under certain conditions, the second factor \(\lim\left(\frac{1}{n}X^{T}\Omega X\right)\) can be estimated consistently by</p>
+
+\[\begin{eqnarray}
+\label{eq5.10.4}
+\frac{1}{n}X^{T}\hat{\Omega}X
+\end{eqnarray}\]
+
+<p>where \(\hat{\Omega}\) is an inconsistent estimator of \(\Omega\). One version of \(\hat{\Omega}\) is a diagonal matrix with \(t^{th}\) diagonal element equal to \(\hat{u}_{t}^{2}\), the \(t^{th}\) squared OLS residual.</p>
+
+<p>The \(k\times k\) matrix \(\lim\left(\frac{1}{n}X^{T}\Omega X\right)\), is symmetric. Therefore, it has \(\frac{1}{2}(k^{2}+k)\) distinct elements. Its \(ij^{th}\) element is</p>
+
+\[\begin{eqnarray}
+\label{eq5.5.5}
+\lim_{n\to\infty}\left(\frac{1}{n}\sum_{t=1}^{n}\omega_{t}^{2}X_{ti}X_{tj}\right)
+\end{eqnarray}\]
+
+<p>For the simplest version of \(\hat{\Omega}\) is</p>
+
+\[\begin{eqnarray}
+\label{eq5.5.6}
+\frac{1}{n}\sum_{t=1}^{n}\hat{u}_{t}^{2}X_{ti}X_{tj}
+\end{eqnarray}\]
+
+\[\begin{eqnarray*}
+n^{1/2}(\hat{\beta}-\beta)&amp;=&amp;\left(\frac{1}{n}\sum_{t=1}^{n}X_{t}^{T}X_{t}\right)^{-1}\sqrt{n}\left(\frac{1}{n}\sum_{t=1}^{n}X_{t}^{T}u_{t}-0\right)\\
+&amp;\sim_{a}&amp;N\left(0,E(X_{t}^{T}X_{t})^{-1}E(u_{t}^{2}X_{t}^{T}X_{t})E(X_{t}^{T}X_{t})^{-1}\right)
+\end{eqnarray*}\]
+
+<p>Using OLS residuals \(\hat{u}_{t}=y_{t}-X_{t}\hat{\beta}\) as consistent estimates error terms \(u_{t}==y_{t}-X_{t}\beta\), we obtain the following consistent estimate for the asymptotic covariance matrix</p>
+
+\[\begin{eqnarray*}
+\widehat{Var}(n^{1/2}(\hat{\beta}-\beta))&amp;=&amp;\left(\frac{1}{n}\sum_{t=1}^{n}X_{t}^{T}X_{t}\right)^{-1}\left(\frac{1}{n}\sum_{t=1}^{n}\hat{u}_{t}^{2}X_{t}^{T}X_{t}\right)\left(\frac{1}{n}\sum_{t=1}^{n}X_{t}^{T}X_{t}\right)^{-1}
+\end{eqnarray*}\]
+
+<p>Then dividing by \(n\) gives an approximation of the covariance matrix of \(\widehat{Var}(\hat{\beta})\)</p>
+
+\[\begin{eqnarray*}
+\widehat{Var}(\hat{\beta})&amp;=&amp;\left(\sum_{t=1}^{n}X_{t}^{T}X_{t}\right)^{-1}\left(\sum_{t=1}^{n}\hat{u}_{t}^{2}X_{t}^{T}X_{t}\right)\left(\sum_{t=1}^{n}X_{t}^{T}X_{t}\right)^{-1}\\
+&amp;=&amp;\left(X^{T}X\right)^{-1}X^{T}\hat{\Omega}X\left(X^{T}X\right)^{-1}
+\end{eqnarray*}\]
+
+<p>where \(\hat{\Omega}\) is a diagonal matrix with \(\hat{u}_{1}^{2},\dots,\hat{u}_{n}^{2}\) on the diagonal.</p>
+
+<h1 id="delta-method">Delta Method</h1>
+<p>How to estimate the covariance matrix of a nonlinear function of a vector parameter estimates?</p>
+
+<p>For example, if we know \(\hat{\theta}\) is an estimator for \(\theta\) and \(\gamma=g(\theta)\), the obvious way to estimate \(\gamma\) is to use \(\hat{\gamma}=g(\hat{\theta})\). The problem is to estimate the variance of \(\hat{\gamma}\). The idea of the delta method is to find a linear approximation to \(g(\theta)\). Since we know how to calculate the variance for linear function, we can apply the approximation to it.</p>
+
+<p>Suppose \(\hat{\theta}\) is a \(k\times 1\) matrix of \(\sqrt{n}\)-consistent estimate of \(\theta\)</p>
+
+\[\begin{eqnarray}
+\label{eq51}
+n^{1/2}(\hat{\theta}-\theta)&amp;\sim_{a}&amp;N(0, V^{\infty}(\hat{\theta}))
+\end{eqnarray}\]
+
+<p>and \(g: \theta_{k\times 1}\mapsto g(\theta)_{\ell\times 1}\) with \(\ell\leq k\)</p>
+
+<p>\(\gamma=g(\theta)\) is a \(\ell\)-vector of monotonic functions that are continuously differentiable.</p>
+
+<p>By Taylor expansion,</p>
+
+\[\begin{eqnarray}
+\label{eq52}
+g(\hat{\theta})&amp;\cong&amp; g(\theta)+g'(\theta)(\hat{\theta}-\theta)
+\end{eqnarray}\]
+
+<p>where</p>
+
+\[\begin{eqnarray*}
+g'(\theta)&amp;=&amp;\left[\begin{array}{ccc}
+\frac{\partial g_{1}}{\partial \theta_{1}}&amp;\cdots&amp;\frac{\partial g_{1}}{\partial \theta_{k}}\\
+\vdots&amp;\ddots&amp;\vdots\\
+\frac{\partial g_{\ell}}{\partial \theta_{1}}&amp;\cdots&amp;\frac{\partial g_{\ell}}{\partial \theta_{k}}
+\end{array}
+\right]
+\end{eqnarray*}\]
+
+<p>Rewrite (\ref{eq52})</p>
+
+\[\begin{eqnarray}
+\label{eq53}
+n^{1/2}(g(\hat{\theta})-g(\theta))&amp;\cong&amp; g'(\theta)n^{1/2}(\hat{\theta}-\theta)
+\end{eqnarray}\]
+
+<p>It can be shown that</p>
+
+\[\begin{eqnarray}
+\label{eq54}
+\mathop{plim}_{n\to\infty}n^{1/2}(g(\hat{\theta})-g(\theta))&amp;=&amp;\mathop{plim}_{n\to\infty} g'(\theta)n^{1/2}(\hat{\theta}-\theta)\\
+&amp;\sim_{a}&amp;N(0,g'(\theta)V^{\infty}(\hat{\theta})g'(\theta)^{T})
+\end{eqnarray}\]
+
+<p>In practice, the covariance matrix of \(\hat{\gamma}\) may be estimated by the matrix</p>
+
+\[\begin{eqnarray}
+\label{eq55}
+\widehat{Var}(\hat{\gamma})&amp;=&amp;g'(\theta)\widehat{Var}(\hat{\theta})(\hat{\theta})g'(\theta)^{T}
+\end{eqnarray}\]
+
+  </article>
+
+</div>
+
+    </div>
+
+    <!-- Footer -->    
+    <footer class="fixed-bottom">
+      <div class="container mt-0">
+        © Copyright 2023 Lingbo  Shen. Powered by <a href="http://jekyllrb.com/" target="_blank" rel="noopener noreferrer">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio" target="_blank" rel="noopener noreferrer">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank" rel="noopener noreferrer">GitHub Pages</a>.
+
+      </div>
+    </footer>
+  </body>
+
+  <!-- jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+
+  <!-- Bootsrap & MDB scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.4.4/umd/popper.min.js" integrity="sha512-eUQ9hGdLjBjY3F41CScH3UX+4JDSI9zXeroz7hJ+RteoCaY+GP/LDoM8AO+Pt+DRFw3nXqsjh9Zsts8hnYv8/A==" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha512-M5KW3ztuIICmVIhjSqXe01oV2bpe248gOxqmlcYrEzAvws7Pw3z6BK0iGbrwvdrUQUhi3eXgtxp5I8PDo9YfjQ==" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.19.1/js/mdb.min.js" integrity="sha512-Mug9KHKmroQFMLm93zGrjhibM2z2Obg9l6qFG2qKjXEXkMp/VDkI4uju9m4QKPjWSwQ6O2qzZEnJDEeCw0Blcw==" crossorigin="anonymous"></script>
+
+  <!-- Mansory & imagesLoaded -->
+  <script defer src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
+  <script defer src="https://unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
+  <script defer src="/assets/js/mansory.js" type="text/javascript"></script>
+  
+  <!-- Medium Zoom JS -->
+  <script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.6/dist/medium-zoom.min.js" integrity="sha256-EdPgYcPk/IIrw7FYeuJQexva49pVRZNmt3LculEr7zM=" crossorigin="anonymous"></script>
+  <script src="/assets/js/zoom.js"></script><!-- Load Common JS -->
+  <script src="/assets/js/common.js"></script>
+
+  <!-- MathJax -->
+  <script type="text/javascript">
+    window.MathJax = {
+      tex: {
+        tags: 'ams'
+      }
+    };
+  </script>
+  <script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js"></script>
+  <script defer src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+
+  
+</html>
+
